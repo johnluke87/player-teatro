@@ -3,7 +3,7 @@ using CuePlayer.ViewModels;
 
 namespace CuePlayer;
 
-public partial class CommandEditorWindow : Window
+public partial class CommandEditorWindow : Wpf.Ui.Controls.FluentWindow
 {
     /// <summary>"save", "delete" or null.</summary>
     public string? Result { get; private set; }
@@ -13,7 +13,6 @@ public partial class CommandEditorWindow : Window
         InitializeComponent();
         DataContext = vm;
         DeleteBtn.Visibility = vm.IsNew ? Visibility.Collapsed : Visibility.Visible;
-        SourceInitialized += (_, _) => MainWindow.UseDarkTitleBar(this);
         Loaded += (_, _) => { NameBox.Focus(); NameBox.SelectAll(); };
     }
 
@@ -25,7 +24,7 @@ public partial class CommandEditorWindow : Window
 
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
-        if (MessageBox.Show(this, "Eliminare questo comando?", "Cue Player",
+        if (MessageBox.Show(this, "Eliminare questo comando?", MainWindow.AppName,
                 MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         Result = "delete";
         DialogResult = true;

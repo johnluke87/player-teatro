@@ -129,6 +129,7 @@ public sealed class CommandEditorViewModel : ObservableObject
         IsNew = isNew;
         _name = source.Name;
         _color = source.Color;
+        _note = source.Note ?? "";
 
         var byFile = source.Actions.GroupBy(a => a.File, StringComparer.OrdinalIgnoreCase)
                                    .ToDictionary(g => g.Key, g => g.Last(), StringComparer.OrdinalIgnoreCase);
@@ -167,6 +168,12 @@ public sealed class CommandEditorViewModel : ObservableObject
     private string _color;
     public string Color { get => _color; set => Set(ref _color, value); }
 
+    private string _note;
+    /// <summary>Director's note: the moment or line when this command is given.</summary>
+    public string Note { get => _note; set => Set(ref _note, value); }
+
+    public bool NotesEnabled => _owner.Features.Notes;
+
     public string Summary => CommandText.Summary(Rows.Select(r => r.ToAction()).OfType<CueAction>(),
         "ancora niente: qui sopra clicca «▶ Parte», «🔉 Volume», «⏸ Pausa» o «⏹ Stop» sulle tracce che devono fare qualcosa");
 
@@ -193,6 +200,7 @@ public sealed class CommandEditorViewModel : ObservableObject
     {
         Name = string.IsNullOrWhiteSpace(_name) ? "Comando" : _name.Trim(),
         Color = _color,
+        Note = (_note ?? "").Trim(),
         Actions = Rows.Select(r => r.ToAction()).OfType<CueAction>().ToList(),
     };
 }

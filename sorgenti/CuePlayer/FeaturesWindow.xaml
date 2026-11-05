@@ -1,0 +1,142 @@
+<ui:FluentWindow x:Class="CuePlayer.FeaturesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="Funzioni · RTC Stage" Width="720" Height="820" MinWidth="560" MinHeight="480"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ExtendsContentIntoTitleBar="True" WindowBackdropType="None"
+        Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}" FontFamily="{StaticResource UiFont}" FontSize="14">
+
+    <Window.Resources>
+        <Style x:Key="FeatureCard" TargetType="Border" BasedOn="{StaticResource Card}">
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style x:Key="Glyph" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{StaticResource BlueBrush}"/>
+        </Style>
+        <Style x:Key="Title" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style x:Key="Desc" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Foreground" Value="{StaticResource SubBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Title="Funzioni" ShowMinimize="False" ShowMaximize="False" Background="{StaticResource PanelBrush}">
+            <ui:TitleBar.Icon><ui:ImageIcon Source="{StaticResource LogoImage}"/></ui:TitleBar.Icon>
+        </ui:TitleBar>
+
+        <ScrollViewer Grid.Row="1" Padding="24,12,24,12" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Funzioni" FontSize="26" FontWeight="SemiBold"/>
+                <TextBlock Style="{StaticResource Desc}" FontSize="13.5" Margin="0,4,0,16">
+                    Accendi solo quello che ti serve: le funzioni spente spariscono dalla schermata, che resta semplice.
+                    La scelta vale per questo PC e si ricorda da sola.
+                </TextBlock>
+
+                <TextBlock Text="DISPONIBILI" Style="{StaticResource SectionLabel}" Margin="0,0,0,8"/>
+
+                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding ShowMode}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE740;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Modalità spettacolo"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Una seconda vista a schermo intero per la serata: GO enorme, comando appena eseguito e prossimo con le note, musiche in corso con il tempo che manca. Pulsante in alto o tasto F11."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding Notes}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE70B;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Note di regia nei comandi"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Per ogni comando scrivi quando va dato (es. «quando entra il servo»). Compare sul pulsante e in grande nella modalità spettacolo."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding Trim}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE8C6;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Inizio e fine traccia"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Pulsante forbici su ogni traccia: falla partire da un punto (es. 0:12) e finire a un altro (es. 2:30), sfumando prima della fine."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding EndWarning}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE7BA;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Avviso di fine traccia"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Negli ultimi 10 secondi la traccia lampeggia in rosso, così sai che sta per finire."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding TrackEq}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE9E9;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Equalizzatore per traccia"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Pulsante EQ su ogni traccia: bassi, medi e alti."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding MasterEq}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE9E9;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Equalizzatore generale"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="EQ a 5 bande su tutto l'audio in uscita, per adattare il suono alla sala."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
+                <TextBlock Text="IN ARRIVO" Style="{StaticResource SectionLabel}" Margin="0,18,0,8"/>
+                <ItemsControl x:Name="Upcoming">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource FeatureCard}" Opacity="0.55">
+                                <DockPanel>
+                                    <Border DockPanel.Dock="Right" Background="#2B3138" CornerRadius="9" Padding="8,2" VerticalAlignment="Center">
+                                        <TextBlock Text="prossimamente" FontSize="11" Foreground="{StaticResource SubBrush}"/>
+                                    </Border>
+                                    <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="{Binding Glyph}" Foreground="{StaticResource SubBrush}"/>
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource Title}" Text="{Binding Title}"/>
+                                        <TextBlock Style="{StaticResource Desc}" Text="{Binding Description}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Background="{StaticResource PanelBrush}" Padding="24,14" BorderBrush="#10FFFFFF" BorderThickness="0,1,0,0">
+            <Button Style="{StaticResource Btn}" Content="Chiudi" IsCancel="True" IsDefault="True" HorizontalAlignment="Right"
+                    MinWidth="120" Background="{StaticResource BlueBrush}" Foreground="White" Click="Close_Click"/>
+        </Border>
+    </Grid>
+</ui:FluentWindow>

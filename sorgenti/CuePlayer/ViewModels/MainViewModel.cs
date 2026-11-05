@@ -32,6 +32,29 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public List<EqBandViewModel> MasterEqBands { get; }
     public bool MasterEqActive => MasterEqBands.Any(b => b.Gain != 0);
 
+    /// <summary>Optional features (Funzioni page), saved per PC.</summary>
+    public FeaturesViewModel Features { get; private set; } = null!;
+
+    private CommandViewModel? _lastCommand;
+    /// <summary>The command run most recently (shown as "ORA" in Show mode).</summary>
+    public CommandViewModel? LastCommand { get => _lastCommand; private set => Set(ref _lastCommand, value); }
+
+    public string Clock => DateTime.Now.ToString("HH:mm");
+
+    /// <summary>The few commands after the next one (Show mode "poi").</summary>
+    public IEnumerable<CommandViewModel> UpcomingCommands =>
+        _nextCommand == null ? Enumerable.Empty<CommandViewModel>()
+                             : Commands.SkipWhile(c => c != _nextCommand).Skip(1).Take(3).ToList();
+
+    private bool _anyActiveCache;
+    private void UpdateAnyActive()
+    {
+        bool now = AnyActive;
+        if (now == _anyActiveCache) return;
+        _anyActiveCache = now;
+        OnPropertyChanged(nameof(AnyActive));
+    }
+
     private string _saveText = "";
     /// <summary>"✓ salvato 21:03" — visible proof that settings reached cueplayer.json.</summary>
     public string SaveText { get => _saveText; private set => Set(ref _saveText, value); }
@@ -56,6 +79,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             if (!Set(ref _nextCommand, value)) return;
             if (old != null) old.IsNext = false;
             if (value != null) value.IsNext = true;
+            OnPropertyChanged(nameof(UpcomingCommands));
             OnPropertyChanged(nameof(NextLabel));
             OnPropertyChanged(nameof(NextTitle));
             OnPropertyChanged(nameof(NextSummary));
@@ -73,6 +97,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     {
         Run(cmd.Model);
         foreach (var c in Commands) c.IsLast = c == cmd;
+        LastCommand = cmd;
         int i = Commands.IndexOf(cmd);
         NextCommand = i >= 0 && i + 1 < Commands.Count ? Commands[i + 1] : null;
     }
@@ -176,6 +201,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public MainViewModel(Dispatcher ui)
     {
         _ui = ui;
+        Features = new FeaturesViewModel(_app.Features, _app.Save);
         _tick = new DispatcherTimer(DispatcherPriority.Render, ui) { Interval = TimeSpan.FromMilliseconds(40) };
         _tick.Tick += (_, _) => OnTick();
         _saveTimer = new DispatcherTimer(DispatcherPriority.Background, ui) { Interval = TimeSpan.FromSeconds(0.6) };
@@ -396,6 +422,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         CommandsChanged();
         NextCommand = Commands.FirstOrDefault();
         foreach (var c in Commands) c.IsLast = false;
+        LastCommand = null;
         _saveTimer.Stop(); // loading values is not a change
 
         Rescan();
@@ -610,9 +637,13 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     // ---------------- ticking, saving ----------------
 
+    private int _tickCount;
+
     private void OnTick()
     {
         foreach (var c in Cues) c.Refresh();
+        UpdateAnyActive();
+        if (++_tickCount % 25 == 0) OnPropertyChanged(nameof(Clock));
         var (l, r) = _engine.TakePeak();
         MeterL = ToMeter(l);
         MeterR = ToMeter(r);

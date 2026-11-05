@@ -10,7 +10,7 @@ public enum PlayState { Stopped, Playing, Paused }
 /// <param name="Ducking">long fade going down to a background level (keeps playing)</param>
 /// <param name="Level">current fade level 0..1 (1 = full; below 1 when sitting in the background)</param>
 public readonly record struct VoiceStatus(PlayState State, TimeSpan Position, bool FadingOut, bool FadingIn,
-    bool Ducking, float Level, bool Failed);
+    bool Ducking, float Level, bool Failed, TimeSpan Start = default, TimeSpan End = default);
 
 /// <summary>
 /// One track. The compressed file lives in memory and is decoded on the fly by the
@@ -39,6 +39,12 @@ public sealed class Voice : IDisposable
     private bool _failed;
     private bool _disposed;
     private readonly Equalizer _eq;
+
+    // trim: the track plays from _start to _end (null = file end), optionally fading out before _end
+    private TimeSpan _start = TimeSpan.Zero;
+    private TimeSpan? _end;
+    private double _endFade;
+    private bool _autoFading;
 
     public TimeSpan Duration { get; }
 
@@ -74,7 +80,8 @@ public sealed class Voice : IDisposable
         lock (Sync)
         {
             if (_disposed || _failed) return;
-            SeekInternal(TimeSpan.Zero);
+            SeekInternal(_start);
+            _autoFading = false;
             _fade = 0f;
             _equalPower = false;
             _state = PlayState.Playing;
@@ -149,6 +156,27 @@ public sealed class Voice : IDisposable
         }
     }
 
+    /// <summary>
+    /// Plays only from <paramref name="start"/> to <paramref name="end"/> (null = to the end of the file),
+    /// fading out during the last <paramref name="endFadeSeconds"/> (0 = hard stop). Loop repeats start→end.
+    /// </summary>
+    public void SetTrim(TimeSpan start, TimeSpan? end, double endFadeSeconds)
+    {
+        lock (Sync)
+        {
+            if (start < TimeSpan.Zero) start = TimeSpan.Zero;
+            if (start >= Duration) start = TimeSpan.Zero;
+            if (end is { } e && (e <= start || e >= Duration)) end = null;
+            _start = start;
+            _end = end;
+            _endFade = Math.Max(0, endFadeSeconds);
+            if (_state == PlayState.Stopped && !_disposed && !_failed) SeekInternal(_start);
+        }
+    }
+
+    /// <summary>Effective end of playback (trim end or file end).</summary>
+    public TimeSpan End { get { lock (Sync) return _end ?? Duration; } }
+
     /// <summary>Track EQ band gain in dB (bands: <see cref="Equalizer.TrackBands"/>).</summary>
     public void SetEq(int band, double db)
     {
@@ -188,7 +216,9 @@ public sealed class Voice : IDisposable
                 FadingIn: ramp && _fadeTarget > _fade,
                 Ducking: ramp && _fadeEnd == FadeEnd.None && _fadeTarget < _fade,
                 Level: _state == PlayState.Playing ? CurveGain(_fade) : 0f,
-                Failed: _failed);
+                Failed: _failed,
+                Start: _start,
+                End: _end ?? Duration);
         }
     }
 
@@ -287,10 +317,11 @@ public sealed class Voice : IDisposable
     private void StopNow()
     {
         _state = PlayState.Stopped;
+        _autoFading = false;
         ResetFade();
         if (!_disposed && !_failed)
         {
-            try { SeekInternal(TimeSpan.Zero); } catch { _failed = true; }
+            try { SeekInternal(_start); } catch { _failed = true; }
         }
     }
 
@@ -346,7 +377,29 @@ public sealed class Voice : IDisposable
             buffer[i + 1] += _tmp[2 * f + 1] * k;
         }
         _gainCurrent = g1;
-        if (ended) StopNow();
+        if (ended) { StopNow(); return; }
+        CheckTrimEnd();
+    }
+
+    /// <summary>Trim end: start the automatic fade-out in time, then stop (or loop back to the trim start).</summary>
+    private void CheckTrimEnd()
+    {
+        if (_end is not { } end || _state != PlayState.Playing) return;
+        var pos = _reader.CurrentTime;
+        if (pos >= end)
+        {
+            if (_loop) { SeekInternal(_start); _autoFading = false; }
+            else StopNow();
+            return;
+        }
+        if (!_loop && !_autoFading && _endFade > 0 && _fadeEnd == FadeEnd.None
+            && pos >= end - TimeSpan.FromSeconds(_endFade))
+        {
+            _autoFading = true;
+            SetCurve(false);
+            _longRamp = true;
+            StartRamp(0f, Math.Max(0.05, (end - pos).TotalSeconds), FadeEnd.Stop);
+        }
     }
 
     private int ReadSource(int count, out bool ended)
@@ -365,7 +418,7 @@ public sealed class Voice : IDisposable
             }
             if (_loop && !justLooped)
             {
-                SeekInternal(TimeSpan.Zero);
+                SeekInternal(_start);
                 justLooped = true;
                 continue;
             }

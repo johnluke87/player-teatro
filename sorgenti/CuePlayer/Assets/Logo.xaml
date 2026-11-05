@@ -1,0 +1,68 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- RTC Stage logo: a stage with red curtains opening on a golden "play" triangle. 256×256 units. -->
+    <DrawingImage x:Key="LogoImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <!-- tile -->
+                <GeometryDrawing Geometry="M56,0 H200 A56,56 0 0 1 256,56 V200 A56,56 0 0 1 200,256 H56 A56,56 0 0 1 0,200 V56 A56,56 0 0 1 56,0 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#2A2E37" Offset="0"/>
+                            <GradientStop Color="#15171C" Offset="1"/>
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <!-- spotlight -->
+                <GeometryDrawing Geometry="M128,58 L196,226 H60 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop Color="#00F6D27A" Offset="0"/>
+                            <GradientStop Color="#33F6D27A" Offset="1"/>
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <!-- left curtain -->
+                <GeometryDrawing Geometry="M30,52 H94 C76,104 72,166 96,226 H30 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#8E1730" Offset="0"/>
+                            <GradientStop Color="#D8394F" Offset="0.55"/>
+                            <GradientStop Color="#A51F38" Offset="1"/>
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <!-- right curtain -->
+                <GeometryDrawing Geometry="M226,52 H162 C180,104 184,166 160,226 H226 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="1,0" EndPoint="0,0">
+                            <GradientStop Color="#8E1730" Offset="0"/>
+                            <GradientStop Color="#D8394F" Offset="0.55"/>
+                            <GradientStop Color="#A51F38" Offset="1"/>
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <!-- valance -->
+                <GeometryDrawing Geometry="M24,30 H232 V56 C214,66 196,66 180,56 C162,66 146,66 128,56 C110,66 94,66 76,56 C60,66 42,66 24,56 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#E0455B" Offset="0"/>
+                            <GradientStop Color="#9C1B33" Offset="1"/>
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <!-- play -->
+                <GeometryDrawing Geometry="M114,116 C114,110 120,107 125,110 L158,131 C163,134 163,141 158,144 L125,165 C120,168 114,165 114,159 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#FFE08A" Offset="0"/>
+                            <GradientStop Color="#E9A93A" Offset="1"/>
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <!-- stage floor -->
+                <GeometryDrawing Brush="#E9A93A" Geometry="M24,224 H232 V232 H24 Z"/>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+</ResourceDictionary>

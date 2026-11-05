@@ -60,6 +60,8 @@ public sealed class CommandViewModel : ObservableObject
     public ICommand EditCommand { get; }
 
     public string Name => Model.Name;
+    public string Note => Model.Note ?? "";
+    public bool HasNote => !string.IsNullOrWhiteSpace(Model.Note);
     public string Summary => CommandText.Summary(Model.Actions);
 
     public Brush ColorBrush
@@ -91,6 +93,8 @@ public sealed class CommandViewModel : ObservableObject
     {
         Model = model;
         OnPropertyChanged(nameof(Name));
+        OnPropertyChanged(nameof(Note));
+        OnPropertyChanged(nameof(HasNote));
         OnPropertyChanged(nameof(Summary));
         OnPropertyChanged(nameof(ColorBrush));
     }

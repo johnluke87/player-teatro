@@ -155,6 +155,36 @@ public class CrossfadeEqTests
     }
 
     [Fact]
+    public void Trim_plays_from_start_point_and_fades_out_before_end_point()
+    {
+        var (e, v) = Make(Sine(10));
+        v.SetTrim(TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), endFadeSeconds: 1);
+        Assert.InRange(v.GetStatus().Position.TotalSeconds, 1.99, 2.01); // stopped, waiting at the start point
+        v.Play();
+        var p = Render(e, 3.4); // 2 s → 5 s, then a little more
+        Assert.True(p[10] > 0.4f, "full volume at the beginning");
+        Assert.True(p[125] < p[75] * 0.6f, "already fading in the last second");
+        Assert.Equal(0f, p.Last());
+        var st = v.GetStatus();
+        Assert.Equal(PlayState.Stopped, st.State);
+        Assert.InRange(st.Position.TotalSeconds, 1.99, 2.01); // rewound to the start point
+        Assert.Equal(5, st.End.TotalSeconds, 2);
+    }
+
+    [Fact]
+    public void Trim_with_loop_repeats_the_section()
+    {
+        var (e, v) = Make(Sine(10));
+        v.SetTrim(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), endFadeSeconds: 1);
+        v.Loop = true;
+        v.Play();
+        var p = Render(e, 3.5);
+        Assert.Equal(PlayState.Playing, v.GetStatus().State);
+        Assert.InRange(v.GetStatus().Position.TotalSeconds, 1.0, 2.05);
+        Assert.True(p.Skip(5).All(x => x > 0.3f), "loop: no fade, no gaps");
+    }
+
+    [Fact]
     public void Play_on_a_background_track_brings_it_to_full()
     {
         var (e, v) = Make(Sine(10));

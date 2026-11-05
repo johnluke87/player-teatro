@@ -20,6 +20,15 @@ public sealed class EqualsConverter : IMultiValueConverter
         throw new NotSupportedException();
 }
 
+/// <summary>Visible only when every bound value is true (e.g. "has a note" AND "notes feature on").</summary>
+public sealed class AllTrueVisibilityConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
+        values.All(v => v is true) ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
 public sealed class InverseBoolConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value is not true;

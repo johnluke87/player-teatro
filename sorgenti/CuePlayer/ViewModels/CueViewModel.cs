@@ -19,7 +19,15 @@ public sealed class CueViewModel : ObservableObject
             _volume = Math.Clamp(saved.Volume, 0, 100);
             _loop = saved.Loop;
             _fadeSeconds = saved.FadeSeconds > 0 ? saved.FadeSeconds : 3;
+            _startAt = Math.Max(0, saved.StartAt);
+            _endAt = saved.EndAt;
+            _endFade = Math.Max(0, saved.EndFade);
         }
+
+        SetStartHereCommand = new RelayCommand(() => { if (_voice != null) StartAt = Math.Round(_voice.GetStatus().Position.TotalSeconds, 1); });
+        SetEndHereCommand = new RelayCommand(() => { if (_voice != null) EndAt = Math.Round(_voice.GetStatus().Position.TotalSeconds, 1); });
+        ClearTrimCommand = new RelayCommand(() => { StartAt = 0; EndAt = null; EndFade = 0; });
+        SetEndFadeCommand = new ParamCommand(p => { if (p is double d) EndFade = d; });
 
         EqBands = EqBandViewModel.Create(Equalizer.TrackBands, saved?.Eq, (band, db) =>
         {
@@ -89,6 +97,7 @@ public sealed class CueViewModel : ObservableObject
         voice.SetVolume((float)(_volume / 100.0));
         voice.Loop = _loop;
         foreach (var b in EqBands) voice.SetEq(b.Index, b.Gain);
+        voice.SetTrim(TimeSpan.FromSeconds(_startAt), _endAt is { } e ? TimeSpan.FromSeconds(e) : null, _endFade);
         Voice = voice;
         Error = null;
         DurationText = Format(voice.Duration);
@@ -153,6 +162,120 @@ public sealed class CueViewModel : ObservableObject
 
     public string FadeLabel => $"SFUMA {FadeSeconds:0.#}s";
 
+    // ---------------- trim (inizio / fine) ----------------
+
+    public static double[] EndFadeChoices { get; } = { 0, 1, 2, 3, 5, 8 };
+
+    public ICommand SetStartHereCommand { get; }
+    public ICommand SetEndHereCommand { get; }
+    public ICommand ClearTrimCommand { get; }
+    public ICommand SetEndFadeCommand { get; }
+
+    private double _startAt;
+    public double StartAt
+    {
+        get => _startAt;
+        set
+        {
+            value = Math.Max(0, value);
+            if (!Set(ref _startAt, value)) return;
+            TrimChanged();
+        }
+    }
+
+    private double? _endAt;
+    public double? EndAt
+    {
+        get => _endAt;
+        set
+        {
+            if (value is <= 0) value = null;
+            if (!Set(ref _endAt, value)) return;
+            TrimChanged();
+        }
+    }
+
+    private double _endFade;
+    public double EndFade
+    {
+        get => _endFade;
+        set
+        {
+            if (!Set(ref _endFade, Math.Max(0, value))) return;
+            TrimChanged();
+        }
+    }
+
+    /// <summary>Editable "m:ss" text for the start point.</summary>
+    public string StartText
+    {
+        get => _startAt > 0 ? Format(TimeSpan.FromSeconds(_startAt), true) : "";
+        set { if (TryParseTime(value, out var s)) StartAt = s ?? 0; else OnPropertyChanged(); }
+    }
+
+    /// <summary>Editable "m:ss" text for the end point (empty = end of file).</summary>
+    public string EndText
+    {
+        get => _endAt is { } e ? Format(TimeSpan.FromSeconds(e), true) : "";
+        set { if (TryParseTime(value, out var s)) EndAt = s; else OnPropertyChanged(); }
+    }
+
+    public bool TrimActive => _startAt > 0 || _endAt != null || _endFade > 0;
+
+    public string TrimSummary
+    {
+        get
+        {
+            if (!TrimActive) return "intera";
+            string a = _startAt > 0 ? Format(TimeSpan.FromSeconds(_startAt), true) : "inizio";
+            string b = _endAt is { } e ? Format(TimeSpan.FromSeconds(e), true) : "fine";
+            return $"{a} → {b}" + (_endFade > 0 ? $", sfuma {_endFade:0.#}s" : "");
+        }
+    }
+
+    private void TrimChanged()
+    {
+        _voice?.SetTrim(TimeSpan.FromSeconds(_startAt), _endAt is { } e ? TimeSpan.FromSeconds(e) : null, _endFade);
+        OnPropertyChanged(nameof(StartText));
+        OnPropertyChanged(nameof(EndText));
+        OnPropertyChanged(nameof(TrimActive));
+        OnPropertyChanged(nameof(TrimSummary));
+        Refresh();
+        _owner.ScheduleSave();
+    }
+
+    /// <summary>Accepts "75", "1:15", "1:15.5", "" (= none).</summary>
+    public static bool TryParseTime(string? text, out double? seconds)
+    {
+        seconds = null;
+        text = (text ?? "").Trim().Replace(',', '.');
+        if (text.Length == 0) return true;
+        var parts = text.Split(':');
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        try
+        {
+            double total = 0;
+            foreach (var p in parts) total = total * 60 + double.Parse(p, inv);
+            if (total < 0) return false;
+            seconds = total;
+            return true;
+        }
+        catch { return false; }
+    }
+
+    // ---------------- end warning ----------------
+
+    private string _remainingText = "";
+    /// <summary>Big countdown for Show mode, e.g. "-0:08".</summary>
+    public string RemainingText { get => _remainingText; private set => Set(ref _remainingText, value); }
+
+    private bool _isEnding;
+    /// <summary>Playing, not looping, less than 10 s to the end: the row blinks.</summary>
+    public bool IsEnding { get => _isEnding; private set => Set(ref _isEnding, value); }
+
+    private int _levelPercent;
+    public int LevelPercent { get => _levelPercent; private set => Set(ref _levelPercent, value); }
+
     // ---------------- state ----------------
 
     private bool _isNext;
@@ -211,10 +334,15 @@ public sealed class CueViewModel : ObservableObject
 
         var dur = _voice.Duration;
         var pos = s.Position;
+        var end = s.End > TimeSpan.Zero ? s.End : dur;
+        var left = end - pos;
         Progress = dur.TotalSeconds > 0 ? pos.TotalSeconds / dur.TotalSeconds : 0;
         TimeText = s.State == PlayState.Stopped
-            ? DurationText
-            : $"{Format(pos)}  /  -{Format(dur - pos)}";
+            ? (TrimActive ? Format(end - s.Start) : DurationText)
+            : $"{Format(pos)}  /  -{Format(left)}";
+        RemainingText = s.State == PlayState.Stopped ? Format(end - s.Start) : "-" + Format(left);
+        IsEnding = s.State == PlayState.Playing && !_loop && left.TotalSeconds <= 10 && _owner.Features.EndWarning;
+        LevelPercent = (int)Math.Round(s.Level * 100);
         UpdateStateKey();
     }
 
@@ -242,13 +370,18 @@ public sealed class CueViewModel : ObservableObject
         Loop = _loop,
         FadeSeconds = _fadeSeconds,
         Eq = EqActive ? EqBands.Select(b => b.Gain).ToArray() : null,
+        StartAt = _startAt,
+        EndAt = _endAt,
+        EndFade = _endFade,
     };
 
-    private static string Format(TimeSpan t)
+    private static string Format(TimeSpan t, bool tenths = false)
     {
         if (t < TimeSpan.Zero) t = TimeSpan.Zero;
-        return t.TotalHours >= 1
+        string s = t.TotalHours >= 1
             ? $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}"
             : $"{(int)t.TotalMinutes}:{t.Seconds:00}";
+        if (tenths && t.Milliseconds >= 100) s += "." + (t.Milliseconds / 100);
+        return s;
     }
 }

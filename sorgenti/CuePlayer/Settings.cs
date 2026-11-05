@@ -8,6 +8,12 @@ public sealed class CueSettings
     public bool Loop { get; set; }
     public double FadeSeconds { get; set; } = 3;
     public double[]? Eq { get; set; }
+    /// <summary>Trim start in seconds (0 = beginning of the file).</summary>
+    public double StartAt { get; set; }
+    /// <summary>Trim end in seconds (null = end of the file).</summary>
+    public double? EndAt { get; set; }
+    /// <summary>Automatic fade-out before the trim end, seconds (0 = none).</summary>
+    public double EndFade { get; set; }
 }
 
 /// <summary>What one command does to one track.</summary>
@@ -30,7 +36,20 @@ public sealed class ShowCommand
 {
     public string Name { get; set; } = "Nuovo comando";
     public string Color { get; set; } = "#3D8BFD";
+    /// <summary>Director's note: when to fire it (e.g. the cue line). Shown big in Show mode.</summary>
+    public string Note { get; set; } = "";
     public List<CueAction> Actions { get; set; } = new();
+}
+
+/// <summary>Optional features, switched on in the "Funzioni" page. Off = hidden, so the main view stays simple.</summary>
+public sealed class FeatureFlags
+{
+    public bool ShowMode { get; set; } = true;
+    public bool Notes { get; set; } = true;
+    public bool Trim { get; set; } = true;
+    public bool EndWarning { get; set; } = true;
+    public bool TrackEq { get; set; } = true;
+    public bool MasterEq { get; set; } = true;
 }
 
 /// <summary>Per-show settings, saved as cueplayer.json inside the music folder (travels with it on a USB stick).</summary>
@@ -83,6 +102,7 @@ public sealed class AppSettings
 {
     public string? LastFolder { get; set; }
     public string? DeviceId { get; set; }
+    public FeatureFlags Features { get; set; } = new();
 
     public static string Dir => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CuePlayer");
@@ -94,7 +114,11 @@ public sealed class AppSettings
         try
         {
             if (File.Exists(FilePath))
-                return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath)) ?? new();
+            {
+                var s = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath)) ?? new();
+                s.Features ??= new();
+                return s;
+            }
         }
         catch { }
         return new AppSettings();

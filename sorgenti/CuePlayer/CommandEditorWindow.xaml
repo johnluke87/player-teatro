@@ -1,12 +1,13 @@
-<Window x:Class="CuePlayer.CommandEditorWindow"
+<ui:FluentWindow x:Class="CuePlayer.CommandEditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:vm="clr-namespace:CuePlayer.ViewModels"
         xmlns:local="clr-namespace:CuePlayer"
-        Title="{Binding WindowTitle}" Width="1120" Height="720" MinWidth="980" MinHeight="480"
-        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Title="{Binding WindowTitle}" Width="1140" Height="780" MinWidth="980" MinHeight="480"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ExtendsContentIntoTitleBar="True" WindowBackdropType="None"
         Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}"
-        FontFamily="Segoe UI" FontSize="14">
+        FontFamily="{StaticResource UiFont}" FontSize="14">
 
     <Window.Resources>
         <local:SecondsLabelConverter x:Key="Secs"/>
@@ -140,12 +141,17 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <ui:TitleBar Title="{Binding WindowTitle}" ShowMinimize="False" Background="{StaticResource PanelBrush}">
+            <ui:TitleBar.Icon><ui:ImageIcon Source="{StaticResource LogoImage}"/></ui:TitleBar.Icon>
+        </ui:TitleBar>
+
         <!-- name + colour -->
-        <Border Background="{StaticResource PanelBrush}" Padding="22,16">
+        <Border Grid.Row="1" Background="{StaticResource PanelBrush}" Padding="22,8,22,16">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -153,9 +159,13 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Text="NOME DEL PULSANTE" Style="{StaticResource SectionLabel}" Margin="0,0,0,6"/>
-                    <TextBox x:Name="NameBox" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" FontSize="20" FontWeight="SemiBold"
-                             Padding="10,6" Background="#2B3038" Foreground="{StaticResource TextBrush}" BorderBrush="#3A414B"
-                             CaretBrush="White" MaxWidth="560" HorizontalAlignment="Left" MinWidth="420"/>
+                    <ui:TextBox x:Name="NameBox" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" FontSize="19" FontWeight="SemiBold"
+                                MaxWidth="560" HorizontalAlignment="Left" MinWidth="440" PlaceholderText="es. Entra MusicaB"/>
+                    <StackPanel Visibility="{Binding NotesEnabled, Converter={StaticResource BoolVis}}">
+                        <TextBlock Text="NOTA DI REGIA  ·  quando va dato" Style="{StaticResource SectionLabel}" Margin="0,12,0,6"/>
+                        <ui:TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}" MaxWidth="560" HorizontalAlignment="Left" MinWidth="440"
+                                    PlaceholderText="es. quando il servo apre la porta · battuta «E ora, signori…»"/>
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="24,0,0,0">
                     <TextBlock Text="COLORE" Style="{StaticResource SectionLabel}" Margin="0,0,0,6"/>
@@ -183,7 +193,7 @@
         </Border>
 
         <!-- helper bar -->
-        <Border Grid.Row="1" Padding="22,12,22,6">
+        <Border Grid.Row="2" Padding="22,12,22,6">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Command="{Binding SnapshotCommand}" Padding="14,8"
                         ToolTip="Mette in questo comando le tracce che stanno suonando adesso, al loro volume attuale">
@@ -200,7 +210,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Style="{StaticResource Btn}" Padding="8,3" Margin="0,0,4,0" FontSize="12" FontWeight="Normal"
+                                <Button Style="{StaticResource Btn}" Height="30" Padding="10,0" Margin="0,0,4,0" FontSize="12" FontWeight="Normal"
                                         Content="{Binding Converter={StaticResource Secs}}" CommandParameter="{Binding}"
                                         Command="{Binding DataContext.AllSecondsCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
                             </DataTemplate>
@@ -215,12 +225,12 @@
         </Border>
 
         <!-- tracks -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="22,6,22,6">
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Padding="22,6,22,6">
             <ItemsControl ItemsSource="{Binding Rows}"/>
         </ScrollViewer>
 
         <!-- footer -->
-        <Border Grid.Row="3" Background="{StaticResource PanelBrush}" Padding="22,14" BorderBrush="#2B3038" BorderThickness="0,1,0,0">
+        <Border Grid.Row="4" Background="{StaticResource PanelBrush}" Padding="22,14" BorderBrush="#10FFFFFF" BorderThickness="0,1,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -230,7 +240,7 @@
                         BorderThickness="3,0,0,0" Margin="0,0,16,0">
                     <StackPanel>
                         <TextBlock Text="COSA FARÀ" Style="{StaticResource SectionLabel}" Margin="0,0,0,4"/>
-                        <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontFamily="Segoe UI" FontSize="13"/>
+                        <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontSize="13" LineHeight="20"/>
                     </StackPanel>
                 </Border>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
@@ -244,10 +254,10 @@
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource Btn}" Content="Annulla" IsCancel="True" Margin="0,0,8,0"/>
-                    <Button Style="{StaticResource Btn}" Content="Salva" Click="Save_Click" Background="{StaticResource GreenBrush}"
+                    <Button Style="{StaticResource Btn}" Content="Salva" Click="Save_Click" Background="{StaticResource GreenBrush}" Foreground="White"
                             IsEnabled="{Binding CanSave}" MinWidth="110"/>
                 </StackPanel>
             </Grid>
         </Border>
     </Grid>
-</Window>
+</ui:FluentWindow>

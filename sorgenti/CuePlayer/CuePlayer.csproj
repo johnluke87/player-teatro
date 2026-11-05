@@ -6,10 +6,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <AssemblyName>CuePlayer</AssemblyName>
+    <AssemblyName>RTCStage</AssemblyName>
     <RootNamespace>CuePlayer</RootNamespace>
-    <Product>Cue Player</Product>
-    <Version>1.0.0</Version>
+    <Product>RTC Stage</Product>
+    <AssemblyTitle>RTC Stage</AssemblyTitle>
+    <Company>RamonTeaConta</Company>
+    <Description>RTC Stage — lettore di musiche per spettacoli teatrali</Description>
+    <Version>2.0.0</Version>
+    <ApplicationIcon>Assets\rtcstage.ico</ApplicationIcon>
     <!-- Server GC off, low-latency friendly -->
     <ServerGarbageCollector>false</ServerGarbageCollector>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
@@ -17,6 +21,13 @@
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="WPF-UI" Version="4.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\rtcstage.ico" />
+    <Resource Include="Assets\logo-256.png" />
+    <None Remove="Assets\logo-512.png" />
   </ItemGroup>
 
   <ItemGroup>
