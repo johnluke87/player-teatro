@@ -18,6 +18,8 @@ Windows 10/11, un unico `RTCStage.exe`: nessuna installazione, funziona anche da
 - **Modalità spettacolo** (F11): vista a schermo intero con GO enorme, ultimo comando e prossimo con le note, musiche in corso con il tempo che manca.
 - **Avviso di fine traccia**: lampeggio rosso negli ultimi 10 secondi.
 - **Funzioni**: ogni strumento si accende o spegne con un interruttore, così la vista resta semplice.
+- **Strumenti in più**: comandi in catena, annulla l'ultimo comando (Ctrl+Z), atti e scene, pre-ascolto in cuffia,
+  forma d'onda, volumi uniformati, limitatore, stampa della scaletta, backup/ripristino dello spettacolo in zip.
 - **EQ generale** a 5 bande, **SFUMA TUTTO**, **STOP TUTTO**; ripiego automatico su un'altra uscita audio se quella scelta non si apre.
 - Tutto si salva da solo in `cueplayer.json` dentro la cartella delle musiche.
 
@@ -31,6 +33,7 @@ Windows 10/11, un unico `RTCStage.exe`: nessuna installazione, funziona anche da
 | F | sfuma tutto |
 | Esc | stop tutto |
 | F11 | modalità spettacolo |
+| Ctrl+Z | annulla l'ultimo comando |
 
 ## Sorgenti
 

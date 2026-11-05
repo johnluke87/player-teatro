@@ -23,8 +23,13 @@ public sealed class EqualsConverter : IMultiValueConverter
 /// <summary>Visible only when every bound value is true (e.g. "has a note" AND "notes feature on").</summary>
 public sealed class AllTrueVisibilityConverter : IMultiValueConverter
 {
-    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
-        values.All(v => v is true) ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+    /// <summary>ConverterParameter="invert": visible when NOT all are true.</summary>
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    {
+        bool all = values.All(v => v is true);
+        if (parameter as string == "invert") all = !all;
+        return all ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+    }
     public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
         throw new NotSupportedException();
 }

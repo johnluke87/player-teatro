@@ -6,7 +6,7 @@ using CuePlayer.Audio;
 
 namespace CuePlayer.ViewModels;
 
-public sealed class MainViewModel : ObservableObject, IDisposable
+public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly Dispatcher _ui;
     private readonly AudioEngine _engine = new();
@@ -95,9 +95,11 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public void Run(CommandViewModel cmd)
     {
+        PushUndo(cmd);
         Run(cmd.Model);
         foreach (var c in Commands) c.IsLast = c == cmd;
         LastCommand = cmd;
+        StartChain(cmd);
         int i = Commands.IndexOf(cmd);
         NextCommand = i >= 0 && i + 1 < Commands.Count ? Commands[i + 1] : null;
     }
@@ -185,6 +187,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     private void CommandsChanged()
     {
         for (int i = 0; i < Commands.Count; i++) Commands[i].Number = i + 1;
+        UpdateGrouping();
         if (_nextCue != null) _nextCue.IsNext = !HasCommands;
         OnPropertyChanged(nameof(HasCommands));
         OnPropertyChanged(nameof(NextLabel));
@@ -202,6 +205,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     {
         _ui = ui;
         Features = new FeaturesViewModel(_app.Features, _app.Save);
+        InitExtras();
         _tick = new DispatcherTimer(DispatcherPriority.Render, ui) { Interval = TimeSpan.FromMilliseconds(40) };
         _tick.Tick += (_, _) => OnTick();
         _saveTimer = new DispatcherTimer(DispatcherPriority.Background, ui) { Interval = TimeSpan.FromSeconds(0.6) };
@@ -242,6 +246,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         foreach (var d in _devices.List()) Devices.Add(d);
         _selectedDevice = Devices.FirstOrDefault(d => d.Id == _app.DeviceId) ?? Devices[0];
         OnPropertyChanged(nameof(SelectedDevice));
+        SelectPreviewDevice();
         _suppressDeviceChange = false;
         StartOutput();
 
@@ -391,6 +396,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         foreach (var d in list) Devices.Add(d);
         _selectedDevice = Devices.FirstOrDefault(d => d.Id == keepId) ?? Devices[0];
         OnPropertyChanged(nameof(SelectedDevice));
+        SelectPreviewDevice();
         _suppressDeviceChange = false;
 
         // following the Windows default: move to the new default device
@@ -564,6 +570,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             return;
         }
         cue.Attach(_engine.CreateVoice(result.Reader));
+        Analyze(cue);
         if (Cues.All(c => c.IsReady || c.Error != null))
         {
             int bad = Cues.Count(c => c.Error != null);
@@ -627,6 +634,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public void StopAll()
     {
+        CancelChain();
         foreach (var c in Cues) { c.Voice?.Stop(); c.Refresh(); }
     }
 
@@ -643,6 +651,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     {
         foreach (var c in Cues) c.Refresh();
         UpdateAnyActive();
+        TickExtras();
         if (++_tickCount % 25 == 0) OnPropertyChanged(nameof(Clock));
         var (l, r) = _engine.TakePeak();
         MeterL = ToMeter(l);
@@ -696,6 +705,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _tick.Stop();
+        DisposeExtras();
         if (_saveTimer.IsEnabled) { _saveTimer.Stop(); SaveShow(); }
         _watcher?.Dispose();
         PreventSleep(false);

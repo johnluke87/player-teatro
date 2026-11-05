@@ -99,6 +99,9 @@ public sealed class CueViewModel : ObservableObject
         foreach (var b in EqBands) voice.SetEq(b.Index, b.Gain);
         voice.SetTrim(TimeSpan.FromSeconds(_startAt), _endAt is { } e ? TimeSpan.FromSeconds(e) : null, _endFade);
         Voice = voice;
+        ApplyNormalization();
+        OnPropertyChanged(nameof(TrimStartFraction));
+        OnPropertyChanged(nameof(TrimEndFraction));
         Error = null;
         DurationText = Format(voice.Duration);
         Refresh();
@@ -233,8 +236,14 @@ public sealed class CueViewModel : ObservableObject
         }
     }
 
+    /// <summary>Trim points as a fraction of the file (for the waveform dimming).</summary>
+    public double TrimStartFraction => _voice != null && _voice.Duration.TotalSeconds > 0 ? _startAt / _voice.Duration.TotalSeconds : 0;
+    public double TrimEndFraction => _voice != null && _voice.Duration.TotalSeconds > 0 && _endAt is { } e ? e / _voice.Duration.TotalSeconds : 1;
+
     private void TrimChanged()
     {
+        OnPropertyChanged(nameof(TrimStartFraction));
+        OnPropertyChanged(nameof(TrimEndFraction));
         _voice?.SetTrim(TimeSpan.FromSeconds(_startAt), _endAt is { } e ? TimeSpan.FromSeconds(e) : null, _endFade);
         OnPropertyChanged(nameof(StartText));
         OnPropertyChanged(nameof(EndText));
@@ -262,6 +271,41 @@ public sealed class CueViewModel : ObservableObject
         }
         catch { return false; }
     }
+
+    // ---------------- analysis: waveform + loudness ----------------
+
+    private AudioAnalysis? _analysis;
+    /// <summary>Waveform overview (null until analysed).</summary>
+    public float[]? Peaks => _analysis?.Peaks;
+    public bool HasPeaks => _analysis != null;
+
+    public void SetAnalysis(AudioAnalysis a)
+    {
+        _analysis = a;
+        OnPropertyChanged(nameof(Peaks));
+        OnPropertyChanged(nameof(HasPeaks));
+        ApplyNormalization();
+    }
+
+    /// <summary>Applies (or removes) the "volumi uniformati" gain according to the feature switch.</summary>
+    public void ApplyNormalization()
+    {
+        double db = _owner.Features.Normalize && _analysis != null ? _analysis.NormalizationDb : 0;
+        _voice?.SetNormalization((float)Math.Pow(10, db / 20));
+        NormalizationText = _owner.Features.Normalize && _analysis != null ? $"{db:+0.0;-0.0;0} dB" : "";
+    }
+
+    private string _normalizationText = "";
+    /// <summary>e.g. "+3.5 dB" — shown next to the volume when normalisation is on.</summary>
+    public string NormalizationText { get => _normalizationText; private set => Set(ref _normalizationText, value); }
+
+    // ---------------- headphone preview ----------------
+
+    private bool _isPreviewing;
+    public bool IsPreviewing { get => _isPreviewing; set => Set(ref _isPreviewing, value); }
+
+    public ICommand PreviewCommand => _previewCommand ??= new RelayCommand(() => _owner.TogglePreview(this));
+    private ICommand? _previewCommand;
 
     // ---------------- end warning ----------------
 

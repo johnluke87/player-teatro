@@ -17,6 +17,19 @@ public sealed class AudioEngine : ISampleProvider, IDisposable
     private float _peakL, _peakR;
     private readonly Equalizer _masterEq = new(Equalizer.MasterBands, 48000);
 
+    // ---- output limiter ----
+    private const float LimitCeiling = 0.891f; // -1 dBFS
+    private bool _limiter;
+    private float _limGain = 1f;
+    private float _limRelease => 1f / (0.15f * SampleRate);
+
+    /// <summary>When on, the sum never goes above -1 dBFS (no hard clipping when several tracks add up).</summary>
+    public bool Limiter
+    {
+        get { lock (Sync) return _limiter; }
+        set { lock (Sync) { _limiter = value; _limGain = 1f; } }
+    }
+
     /// <summary>Master EQ band gain in dB (bands: <see cref="Equalizer.MasterBands"/>).</summary>
     public void SetMasterEq(int band, double db)
     {
@@ -137,12 +150,25 @@ public sealed class AudioEngine : ISampleProvider, IDisposable
             float g0 = _masterCurrent, g1 = _masterTarget;
             float dg = frames > 0 ? (g1 - g0) / frames : 0f;
             float g = g0, pl = _peakL, pr = _peakR;
+            bool limit = _limiter;
+            float lg = _limGain;
             for (int f = 0; f < frames; f++)
             {
                 g += dg;
                 int i = offset + 2 * f;
-                float l = Math.Clamp(buffer[i] * g, -1f, 1f);
-                float r = Math.Clamp(buffer[i + 1] * g, -1f, 1f);
+                float l = buffer[i] * g;
+                float r = buffer[i + 1] * g;
+                if (limit)
+                {
+                    // peak limiter: instant attack, ~150 ms release, ceiling -1 dBFS
+                    float env = MathF.Max(MathF.Abs(l), MathF.Abs(r)) * lg;
+                    if (env > LimitCeiling) lg = LimitCeiling / MathF.Max(MathF.Abs(l), MathF.Abs(r));
+                    else lg += (1f - lg) * _limRelease;
+                    l *= lg;
+                    r *= lg;
+                }
+                l = Math.Clamp(l, -1f, 1f);
+                r = Math.Clamp(r, -1f, 1f);
                 buffer[i] = l;
                 buffer[i + 1] = r;
                 if (l < 0) l = -l;
@@ -151,6 +177,7 @@ public sealed class AudioEngine : ISampleProvider, IDisposable
                 if (r > pr) pr = r;
             }
             _masterCurrent = g1;
+            _limGain = lg;
             _peakL = pl;
             _peakR = pr;
         }

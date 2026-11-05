@@ -49,7 +49,7 @@
                     La scelta vale per questo PC e si ricorda da sola.
                 </TextBlock>
 
-                <TextBlock Text="DISPONIBILI" Style="{StaticResource SectionLabel}" Margin="0,0,0,8"/>
+                <TextBlock Text="VISTA E TRACCE" Style="{StaticResource SectionLabel}" Margin="0,0,0,8"/>
 
                 <Border Style="{StaticResource FeatureCard}">
                     <DockPanel>
@@ -112,25 +112,91 @@
                     </DockPanel>
                 </Border>
 
-                <TextBlock Text="IN ARRIVO" Style="{StaticResource SectionLabel}" Margin="0,18,0,8"/>
-                <ItemsControl x:Name="Upcoming">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Style="{StaticResource FeatureCard}" Opacity="0.55">
-                                <DockPanel>
-                                    <Border DockPanel.Dock="Right" Background="#2B3138" CornerRadius="9" Padding="8,2" VerticalAlignment="Center">
-                                        <TextBlock Text="prossimamente" FontSize="11" Foreground="{StaticResource SubBrush}"/>
-                                    </Border>
-                                    <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="{Binding Glyph}" Foreground="{StaticResource SubBrush}"/>
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource Title}" Text="{Binding Title}"/>
-                                        <TextBlock Style="{StaticResource Desc}" Text="{Binding Description}"/>
-                                    </StackPanel>
-                                </DockPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <TextBlock Text="DURANTE LO SPETTACOLO" Style="{StaticResource SectionLabel}" Margin="0,18,0,8"/>
+                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding Chain}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE916;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Comandi in catena"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Nel comando scegli «dopo N secondi esegui da solo il prossimo». Il conto alla rovescia compare in basso; GO o un altro comando lo interrompono."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding Undo}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE7A7;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Annulla l'ultimo comando"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Pulsante ↶ accanto a GO (o Ctrl+Z): le tracce tornano in mezzo secondo come erano prima dell'ultimo comando, e quel comando torna a essere il prossimo."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding Acts}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE8FD;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Atti e scene"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Nel comando scrivi l'atto o la scena (es. «Atto I»): i comandi si raggruppano sotto un titolo, che puoi chiudere e riaprire."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding Preview}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE7F6;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Pre-ascolto in cuffia"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Pulsante cuffia su ogni traccia: la senti su una seconda uscita (le cuffie del tecnico) senza farla arrivare in sala. Scegli la cuffia in alto, accanto all'uscita audio."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>                <TextBlock Text="SUONO" Style="{StaticResource SectionLabel}" Margin="0,18,0,8"/>
+                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding Waveform}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE9D9;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Forma d'onda"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Al posto della barra di avanzamento vedi la forma del suono: dove sono silenzi, attacchi e finali. Le parti escluse da inizio/fine sono scurite."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding Normalize}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE9E9;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Volumi uniformati"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Il programma misura ogni file e lo porta allo stesso volume percepito (senza mai farlo distorcere). La correzione compare sotto il volume della traccia."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding Limiter}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE7BA;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Limitatore"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Se più musiche insieme superano il massimo, il volume viene contenuto dolcemente invece di distorcere."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>                <TextBlock Text="PREPARAZIONE" Style="{StaticResource SectionLabel}" Margin="0,18,0,8"/>
+                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding PrintList}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE749;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Stampa della scaletta"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Menu Spettacolo → Stampa: l'elenco dei comandi con note e azioni si apre nel browser, pronto da stampare o salvare in PDF per la regia."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>                <Border Style="{StaticResource FeatureCard}">
+                    <DockPanel>
+                        <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding Backup}" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource Glyph}" Text="&#xE8B7;"/>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Title}" Text="Backup dello spettacolo"/>
+                            <TextBlock Style="{StaticResource Desc}" Text="Menu Spettacolo → Backup: musiche e impostazioni in un unico file zip, da portare su un altro PC e ripristinare con un clic."/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
 

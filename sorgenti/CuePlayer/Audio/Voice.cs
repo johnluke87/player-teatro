@@ -192,6 +192,14 @@ public sealed class Voice : IDisposable
         }
     }
 
+    private float _norm = 1f;
+
+    /// <summary>Loudness normalisation gain (linear, 1 = untouched), from <see cref="AudioAnalysis"/>.</summary>
+    public void SetNormalization(float linearGain)
+    {
+        lock (Sync) _norm = Math.Clamp(linearGain, 0.05f, 8f);
+    }
+
     /// <summary>Track volume as slider fraction 0..1 (perceptual curve applied).</summary>
     public void SetVolume(float fraction)
     {
@@ -371,7 +379,7 @@ public sealed class Voice : IDisposable
                     }
                 }
             }
-            float k = g * CurveGain(_fade);
+            float k = g * _norm * CurveGain(_fade);
             int i = offset + 2 * f;
             buffer[i] += _tmp[2 * f] * k;
             buffer[i + 1] += _tmp[2 * f + 1] * k;

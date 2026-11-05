@@ -130,6 +130,10 @@ public sealed class CommandEditorViewModel : ObservableObject
         _name = source.Name;
         _color = source.Color;
         _note = source.Note ?? "";
+        _group = source.Group ?? "";
+        _autoNext = source.AutoNext;
+        _autoNextSeconds = source.AutoNextSeconds > 0 ? source.AutoNextSeconds : 5;
+        SetAutoSecondsCommand = new ParamCommand(p => { if (p is double s) AutoNextSeconds = s; });
 
         var byFile = source.Actions.GroupBy(a => a.File, StringComparer.OrdinalIgnoreCase)
                                    .ToDictionary(g => g.Key, g => g.Last(), StringComparer.OrdinalIgnoreCase);
@@ -173,6 +177,20 @@ public sealed class CommandEditorViewModel : ObservableObject
     public string Note { get => _note; set => Set(ref _note, value); }
 
     public bool NotesEnabled => _owner.Features.Notes;
+    // ---- act / scene ----
+    private string _group;
+    public string Group { get => _group; set => Set(ref _group, value ?? ""); }
+    public bool ActsEnabled => _owner.Features.Acts;
+    public List<string> KnownGroups => _owner.KnownGroups;
+
+    // ---- chain ----
+    public static double[] AutoChoices { get; } = { 0, 1, 2, 3, 5, 8, 10, 15, 20, 30 };
+    public bool ChainEnabled => _owner.Features.Chain;
+    private bool _autoNext;
+    public bool AutoNext { get => _autoNext; set => Set(ref _autoNext, value); }
+    private double _autoNextSeconds;
+    public double AutoNextSeconds { get => _autoNextSeconds; set => Set(ref _autoNextSeconds, value); }
+    public ICommand SetAutoSecondsCommand { get; }
 
     public string Summary => CommandText.Summary(Rows.Select(r => r.ToAction()).OfType<CueAction>(),
         "ancora niente: qui sopra clicca «▶ Parte», «🔉 Volume», «⏸ Pausa» o «⏹ Stop» sulle tracce che devono fare qualcosa");
@@ -201,6 +219,9 @@ public sealed class CommandEditorViewModel : ObservableObject
         Name = string.IsNullOrWhiteSpace(_name) ? "Comando" : _name.Trim(),
         Color = _color,
         Note = (_note ?? "").Trim(),
+        Group = (_group ?? "").Trim(),
+        AutoNext = _autoNext,
+        AutoNextSeconds = _autoNextSeconds,
         Actions = Rows.Select(r => r.ToAction()).OfType<CueAction>().ToList(),
     };
 }

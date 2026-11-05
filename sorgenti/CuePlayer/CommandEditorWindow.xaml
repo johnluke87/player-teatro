@@ -166,6 +166,11 @@
                         <ui:TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}" MaxWidth="560" HorizontalAlignment="Left" MinWidth="440"
                                     PlaceholderText="es. quando il servo apre la porta · battuta «E ora, signori…»"/>
                     </StackPanel>
+                    <StackPanel Visibility="{Binding ActsEnabled, Converter={StaticResource BoolVis}}">
+                        <TextBlock Text="ATTO / SCENA  ·  per raggrupparli" Style="{StaticResource SectionLabel}" Margin="0,12,0,6"/>
+                        <ComboBox IsEditable="True" Text="{Binding Group, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding KnownGroups}"
+                                  MaxWidth="560" MinWidth="440" HorizontalAlignment="Left" ToolTip="Scrivi un nome nuovo (es. Atto I) o scegline uno già usato"/>
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="24,0,0,0">
                     <TextBlock Text="COLORE" Style="{StaticResource SectionLabel}" Margin="0,0,0,6"/>
@@ -188,6 +193,35 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+
+                    <Border Style="{StaticResource Card}" Padding="14,10" Margin="0,14,0,0" MaxWidth="470" HorizontalAlignment="Left"
+                            Visibility="{Binding ChainEnabled, Converter={StaticResource BoolVis}}">
+                        <StackPanel>
+                            <CheckBox IsChecked="{Binding AutoNext}" Content="Dopo questo comando, esegui da solo il prossimo"
+                                      ToolTip="Comandi in catena: il comando successivo parte da solo dopo il tempo scelto"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Visibility="{Binding AutoNext, Converter={StaticResource BoolVis}}">
+                                <TextBlock Text="dopo" Foreground="{StaticResource SubBrush}" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                                <ItemsControl ItemsSource="{x:Static vm:CommandEditorViewModel.AutoChoices}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><WrapPanel MaxWidth="400"/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource ChipBtn}" Content="{Binding Converter={StaticResource Secs}}" CommandParameter="{Binding}"
+                                                    Command="{Binding DataContext.SetAutoSecondsCommand, RelativeSource={RelativeSource AncestorType=Window}}">
+                                                <Button.Tag>
+                                                    <MultiBinding Converter="{StaticResource Eq}">
+                                                        <Binding/>
+                                                        <Binding Path="DataContext.AutoNextSeconds" RelativeSource="{RelativeSource AncestorType=Window}"/>
+                                                    </MultiBinding>
+                                                </Button.Tag>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Grid>
         </Border>

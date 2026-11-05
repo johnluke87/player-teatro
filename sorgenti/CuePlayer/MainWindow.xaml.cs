@@ -49,6 +49,12 @@ public partial class MainWindow : FluentWindow
         // let an open drop-down or a text field use the keyboard
         if (e.OriginalSource is DependencyObject d && FindAncestor<ComboBox>(d) is { IsDropDownOpen: true }) return;
         if (e.OriginalSource is System.Windows.Controls.TextBox) return;
+        if (e.Key == Key.Z && Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            if (vm.Features.Undo) vm.Undo();
+            e.Handled = true;
+            return;
+        }
         if (Keyboard.Modifiers != ModifierKeys.None) return;
 
         if (e.Key is >= Key.D1 and <= Key.D9 or >= Key.NumPad1 and <= Key.NumPad9)
@@ -98,6 +104,66 @@ public partial class MainWindow : FluentWindow
     private void Features_Click(object sender, RoutedEventArgs e)
     {
         new FeaturesWindow(_vm.Features) { Owner = this }.ShowDialog();
+    }
+
+    /// <summary>"Spettacolo ▾": print the cue list, back up / restore the whole show.</summary>
+    private void ShowMenu_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement b) return;
+        var menu = new ContextMenu { PlacementTarget = b, Placement = PlacementMode.Bottom };
+        if (_vm.Features.PrintList)
+        {
+            var print = new MenuItem { Header = "🖨  Stampa la scaletta (comandi e note)…", IsEnabled = _vm.HasCommands };
+            print.Click += (_, _) => Try(() => _vm.PrintCueList());
+            menu.Items.Add(print);
+        }
+        if (_vm.Features.Backup)
+        {
+            if (menu.Items.Count > 0) menu.Items.Add(new Separator());
+            var backup = new MenuItem { Header = "💾  Fai un backup dello spettacolo (zip)…", IsEnabled = _vm.HasFolder };
+            backup.Click += (_, _) => Backup();
+            var restore = new MenuItem { Header = "📂  Ripristina un backup…" };
+            restore.Click += (_, _) => Restore();
+            menu.Items.Add(backup);
+            menu.Items.Add(restore);
+        }
+        menu.IsOpen = true;
+    }
+
+    private void Backup()
+    {
+        var dlg = new SaveFileDialog
+        {
+            Title = "Salva il backup dello spettacolo",
+            Filter = "Backup spettacolo (*.zip)|*.zip",
+            FileName = $"{_vm.ShowName ?? "Spettacolo"} - backup {DateTime.Now:yyyy-MM-dd}.zip",
+        };
+        if (dlg.ShowDialog(this) != true) return;
+        Mouse.OverrideCursor = Cursors.Wait;
+        try { _vm.BackupTo(dlg.FileName); }
+        catch (Exception ex) { MessageBox.Show(this, "Backup non riuscito: " + ex.Message, AppName, MessageBoxButton.OK, MessageBoxImage.Error); }
+        finally { Mouse.OverrideCursor = null; }
+    }
+
+    private void Restore()
+    {
+        if (_vm.AnyActive &&
+            MessageBox.Show(this, "C'è musica in riproduzione: ripristinando si ferma tutto. Continuare?",
+                AppName, MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        var open = new OpenFileDialog { Title = "Scegli il backup (zip)", Filter = "Backup spettacolo (*.zip)|*.zip" };
+        if (open.ShowDialog(this) != true) return;
+        var target = new OpenFolderDialog { Title = "Dove rimettere lo spettacolo (scegli o crea una cartella vuota)" };
+        if (target.ShowDialog(this) != true) return;
+        Mouse.OverrideCursor = Cursors.Wait;
+        try { _vm.RestoreFrom(open.FileName, target.FolderName); }
+        catch (Exception ex) { MessageBox.Show(this, "Ripristino non riuscito: " + ex.Message, AppName, MessageBoxButton.OK, MessageBoxImage.Error); }
+        finally { Mouse.OverrideCursor = null; }
+    }
+
+    private void Try(Action a)
+    {
+        try { a(); }
+        catch (Exception ex) { MessageBox.Show(this, ex.Message, AppName, MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
     /// <summary>Opens the duration menu of a split SFUMA button (per track or "Sfuma tutto").</summary>

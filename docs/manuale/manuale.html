@@ -77,6 +77,7 @@
     <li>Sfumare e fermare tutto</li>
     <li>Equalizzatore</li>
     <li>Funzioni: accendere e spegnere gli strumenti</li>
+    <li>Strumenti in più</li>
     <li>Uscita audio</li>
     <li>Salvataggio delle impostazioni</li>
     <li>Prima dello spettacolo: lista di controllo</li>
@@ -108,11 +109,11 @@ Tutte le musiche vengono caricate in memoria all'apertura: quando premi un pulsa
 <h2 class="pb">3. La schermata principale</h2>
 <figure>
   <img src="img/principale.png">
-  <figcaption>La schermata principale con una cartella di esempio e quattro comandi già preparati (con note di regia).</figcaption>
+  <figcaption>La schermata principale: tracce con forma d'onda, comandi raggruppati per atto con note di regia e catena, pulsante Annulla accanto a GO.</figcaption>
 </figure>
 <table>
   <tr><th style="width:28%">Zona</th><th>A cosa serve</th></tr>
-  <tr><td>In alto</td><td><b>Apri cartella</b>, <b>Aggiorna</b>, percorso della cartella, <span class="chip c-brand">Modalità spettacolo</span>, <b>Funzioni</b>, scelta dell'uscita audio.</td></tr>
+  <tr><td>In alto</td><td><b>Apri cartella</b>, <b>Aggiorna</b>, percorso della cartella, <span class="chip c-brand">Modalità spettacolo</span>, menu <b>Spettacolo ▾</b> (stampa, backup), <b>Funzioni</b>, uscita audio della sala (e cuffia per il pre-ascolto).</td></tr>
   <tr><td>Al centro: le tracce</td><td>Una riga per ogni file, con i controlli manuali. Servono per le prove e per intervenire a mano.</td></tr>
   <tr><td>A destra: Comandi</td><td>I tuoi pulsanti. Ognuno fa fare qualcosa a una o più tracce insieme. È il modo consigliato di gestire lo spettacolo.</td></tr>
   <tr><td>In basso</td><td><b>GO</b> (esegue il prossimo comando), <b>SFUMA TUTTO</b> con la sua durata, <b>STOP TUTTO</b>, <b>EQ generale</b>, <b>Volume generale</b> con indicatore di livello.</td></tr>
@@ -214,6 +215,7 @@ L'ultimo eseguito mostra <span class="chip c-green">✓ ESEGUITO</span>. Se non 
   <tr><td><span class="k">F</span></td><td>sfuma tutto</td></tr>
   <tr><td><span class="k">Esc</span></td><td>STOP TUTTO immediato</td></tr>
   <tr><td><span class="k">F11</span></td><td>apre / chiude la modalità spettacolo</td></tr>
+  <tr><td><span class="k">Ctrl+Z</span></td><td>annulla l'ultimo comando</td></tr>
 </table>
 <table>
   <tr><th style="width:30%">Colore / scritta</th><th>Significato</th></tr>
@@ -263,7 +265,7 @@ occupa tutto lo schermo ed è leggibile anche da lontano e al buio. La schermata
 che così resta semplice. La scelta vale per il PC su cui la fai.</p>
 <figure>
   <img src="img/funzioni.png" style="max-width:120mm">
-  <figcaption>La pagina Funzioni. In fondo, nella sezione «In arrivo», le funzioni previste per le prossime versioni.</figcaption>
+  <figcaption>La pagina Funzioni: un interruttore per ogni strumento.</figcaption>
 </figure>
 <table>
   <tr><th style="width:34%">Interruttore</th><th>Se lo spegni</th></tr>
@@ -272,9 +274,48 @@ che così resta semplice. La scelta vale per il PC su cui la fai.</p>
   <tr><td>Inizio e fine traccia</td><td>sparisce il pulsante ✂ (i tagli già impostati restano attivi)</td></tr>
   <tr><td>Avviso di fine traccia</td><td>niente lampeggio negli ultimi 10 secondi</td></tr>
   <tr><td>Equalizzatore per traccia / generale</td><td>spariscono i pulsanti EQ (le regolazioni già fatte restano attive)</td></tr>
+  <tr><td>Comandi in catena</td><td>i comandi non partono più da soli (l'impostazione resta salvata)</td></tr>
+  <tr><td>Annulla l'ultimo comando</td><td>sparisce il pulsante ↶ e Ctrl+Z non fa nulla</td></tr>
+  <tr><td>Atti e scene</td><td>i comandi tornano in un'unica lista</td></tr>
+  <tr><td>Pre-ascolto in cuffia</td><td>spariscono il pulsante cuffia e la scelta della cuffia</td></tr>
+  <tr><td>Forma d'onda</td><td>torna la barra di avanzamento semplice</td></tr>
+  <tr><td>Volumi uniformati</td><td>ogni file suona al suo volume originale</td></tr>
+  <tr><td>Limitatore</td><td>se più musiche insieme superano il massimo, il suono distorce</td></tr>
+  <tr><td>Stampa / Backup</td><td>spariscono le voci dal menu Spettacolo</td></tr>
 </table>
 
-<h2>14. Uscita audio</h2>
+<h2 class="pb">14. Strumenti in più</h2>
+<h3>Comandi in catena</h3>
+<p>Nell'editor di un comando spunta <b>«Dopo questo comando, esegui da solo il prossimo»</b> e scegli dopo quanti secondi.
+Esempio: «Tuono» con catena di 2 s → dopo 2 secondi parte da solo «Pioggia». Mentre aspetta, in basso (e nella modalità spettacolo) compare
+<b>«⏱ … parte da solo tra 1.4 s»</b>. Se nel frattempo premi GO o un altro comando, il conto alla rovescia si annulla. STOP TUTTO lo annulla sempre.</p>
+<h3>Annulla l'ultimo comando</h3>
+<p>Il pulsante <b>↶ Annulla</b> accanto a GO (o <span class="k">Ctrl+Z</span>) riporta in mezzo secondo ogni traccia com'era prima dell'ultimo comando:
+le tracce fatte partire si fermano, quelle fermate ripartono dal punto in cui sarebbero arrivate, i volumi tornano come prima.
+Il comando annullato torna a essere il <span class="chip c-blue">PROSSIMO</span>. Si può annullare più volte di fila.</p>
+<h3>Atti e scene</h3>
+<p>Nell'editor scrivi l'atto o la scena nel campo <b>«Atto / scena»</b> (es. «Atto I», «Scena 3»), oppure scegline uno già usato.
+Nel pannello i comandi si raggruppano sotto un titolo con il numero di comandi; clic sul titolo per chiudere o riaprire il gruppo. La numerazione e l'ordine di GO non cambiano.</p>
+<h3>Pre-ascolto in cuffia</h3>
+<p>In alto, accanto all'uscita della sala, scegli la <b>cuffia</b> (una seconda scheda audio o l'uscita cuffie del PC). Su ogni traccia compare il pulsante 🎧:
+la traccia si sente solo in cuffia, non in sala — utile per trovare un punto o controllare un file durante lo spettacolo. Ripremi per fermare.</p>
+<div class="warn">La cuffia deve essere un'uscita <b>diversa</b> da quella della sala, altrimenti il pre-ascolto si sente in sala.</div>
+<h3>Forma d'onda</h3>
+<p>Al posto della barra di avanzamento compare la forma del suono: le barre alte sono le parti forti, quelle basse i silenzi.
+La parte già suonata prende il colore dello stato; le parti escluse da inizio/fine (✂) sono scurite. Clic sulla forma d'onda = salta a quel punto.</p>
+<h3>Volumi uniformati</h3>
+<p>Il programma misura ogni file e lo porta allo stesso volume percepito, senza mai farlo distorcere. La correzione applicata compare in verde acqua sotto il volume della riga (es. «+3.5 dB»).
+Il cursore del volume della riga continua a funzionare sopra questa correzione.</p>
+<h3>Limitatore</h3>
+<p>Quando più musiche suonano insieme e la somma supera il massimo, il volume complessivo viene contenuto dolcemente (tetto a −1 dB) invece di distorcere. Se nulla supera il massimo, il suono non viene toccato.</p>
+<h3>Stampa della scaletta</h3>
+<p>Menu <b>Spettacolo ▾ → Stampa la scaletta</b>: si apre una pagina nel browser con numero, nome, atto, nota di regia e azioni di ogni comando,
+e la finestra di stampa. Puoi stamparla o scegliere «Salva come PDF» da dare alla regia.</p>
+<h3>Backup dello spettacolo</h3>
+<p>Menu <b>Spettacolo ▾ → Fai un backup</b>: crea un unico file <code>.zip</code> con tutte le musiche e le impostazioni (comandi, volumi, EQ, tagli).
+Su un altro PC: <b>Spettacolo ▾ → Ripristina un backup</b>, scegli lo zip e una cartella vuota: il programma estrae tutto e apre lo spettacolo.</p>
+
+<h2>15. Uscita audio</h2>
 <ul>
   <li>In alto a destra scegli la scheda audio: <b>Predefinita di Windows</b> oppure una specifica (altoparlanti, scheda USB, mixer).</li>
   <li>Se l'uscita scelta non si può aprire (es. cuffie Bluetooth spente ma ancora impostate in Windows), il programma <b>passa da solo a un'altra uscita funzionante</b>
@@ -282,7 +323,7 @@ che così resta semplice. La scelta vale per il PC su cui la fai.</p>
 </ul>
 <div class="warn">Per lo spettacolo usa un'uscita <b>via cavo</b> (jack o scheda USB). Le cuffie e gli altoparlanti Bluetooth hanno ritardo e possono disconnettersi.</div>
 
-<h2>15. Salvataggio delle impostazioni</h2>
+<h2>16. Salvataggio delle impostazioni</h2>
 <p>Non c'è niente da salvare a mano. Ogni modifica viene scritta dopo meno di un secondo nel file <code>cueplayer.json</code>
 <b>dentro la cartella delle musiche</b>; in basso compare «✓ impostazioni salvate» con l'ora.</p>
 <p>Vengono salvati: volume, loop, sfumata, inizio/fine ed EQ di ogni traccia; EQ e volume generale; durata di «Sfuma tutto»; tutti i comandi con le note.</p>
@@ -291,7 +332,7 @@ che così resta semplice. La scelta vale per il PC su cui la fai.</p>
   <li>Le impostazioni sono legate al <b>nome del file</b>: rinomina i file prima di preparare i comandi.</li>
 </ul>
 
-<h2 class="pb">16. Prima dello spettacolo: lista di controllo</h2>
+<h2 class="pb">17. Prima dello spettacolo: lista di controllo</h2>
 <ol>
   <li>Apri la cartella dello spettacolo e controlla che nessuna traccia sia rossa.</li>
   <li>Controlla che il volume di ogni riga sia quello voluto (di solito 100%).</li>
@@ -302,7 +343,7 @@ che così resta semplice. La scelta vale per il PC su cui la fai.</p>
   <li>Controlla che il <span class="chip c-blue">PROSSIMO</span> sia il primo comando, poi apri la <b>modalità spettacolo</b> (F11).</li>
 </ol>
 
-<h2>17. Problemi e soluzioni</h2>
+<h2>18. Problemi e soluzioni</h2>
 <table>
   <tr><th style="width:34%">Problema</th><th>Cosa controllare</th></tr>
   <tr><td>Non sento una traccia</td><td>Volume della sua riga (non a 0–1%); volume generale; volume di Windows; uscita audio in alto a destra; eventuale ✂ con inizio oltre la fine del brano.</td></tr>

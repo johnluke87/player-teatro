@@ -221,6 +221,20 @@
                 </Setter>
             </Style>
 
+            <!-- tooltips inherit the font of their button: icon buttons use the icon font, which has no letters
+                 (text became little squares). Force the normal UI font on every tooltip. -->
+            <Style TargetType="ToolTip" BasedOn="{StaticResource {x:Type ToolTip}}">
+                <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+                <Setter Property="FontStyle" Value="Normal"/>
+            </Style>
+            <Style TargetType="ContextMenu" BasedOn="{StaticResource {x:Type ContextMenu}}">
+                <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+            </Style>
+
             <Style x:Key="SectionLabel" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="11"/>
                 <Setter Property="FontWeight" Value="Bold"/>

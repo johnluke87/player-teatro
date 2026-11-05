@@ -178,6 +178,8 @@
                     <TextBlock DockPanel.Dock="Top" Text="PROSSIMO  ·  Spazio" Style="{StaticResource Kicker}" Foreground="{StaticResource BlueBrush}"/>
                     <StackPanel DockPanel.Dock="Top" Margin="0,8,0,0">
                         <TextBlock Text="{Binding NextTitle}" FontSize="40" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding ChainText}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource AmberBrush}" Margin="0,6,0,0"
+                                   Visibility="{Binding HasChain, Converter={StaticResource BoolVis}}"/>
                         <TextBlock Text="{Binding NextCommand.Note}" FontSize="26" FontStyle="Italic" Foreground="#E9C77A"
                                    TextWrapping="Wrap" Margin="0,10,0,0">
                             <TextBlock.Visibility>
@@ -220,9 +222,20 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+            <Button Style="{StaticResource Btn}" Height="110" Width="110" Margin="0,0,12,0" Command="{Binding UndoCommand}"
+                    IsEnabled="{Binding CanUndo}" ToolTip="{Binding UndoLabel}"
+                    Visibility="{Binding Features.Undo, Converter={StaticResource BoolVis}}">
+                <StackPanel>
+                    <TextBlock Text="&#xE7A7;" FontFamily="{StaticResource IconFont}" FontSize="26" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Annulla" FontSize="14" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                    <TextBlock Text="Ctrl+Z" FontSize="11" FontWeight="Normal" Opacity="0.7" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Button>
             <Button Style="{StaticResource Btn}" Height="110" Width="90" Click="Prev_Click" ToolTip="Prossimo comando: uno indietro (↑)">
                 <TextBlock Text="&#xE70E;" FontFamily="{StaticResource IconFont}" FontSize="26"/>
             </Button>
+            </StackPanel>
             <Button Grid.Column="1" Style="{StaticResource Btn}" Height="110" Margin="12,0" Background="{StaticResource GreenBrush}" Foreground="White"
                     Command="{Binding GoCommand}" ToolTip="Esegue il prossimo comando (Spazio)">
                 <StackPanel Orientation="Horizontal">

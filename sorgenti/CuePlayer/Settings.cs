@@ -38,6 +38,11 @@ public sealed class ShowCommand
     public string Color { get; set; } = "#3D8BFD";
     /// <summary>Director's note: when to fire it (e.g. the cue line). Shown big in Show mode.</summary>
     public string Note { get; set; } = "";
+    /// <summary>Act / scene this command belongs to ("" = none). Commands are grouped under it.</summary>
+    public string Group { get; set; } = "";
+    /// <summary>After running, fire the next command by itself after <see cref="AutoNextSeconds"/>.</summary>
+    public bool AutoNext { get; set; }
+    public double AutoNextSeconds { get; set; } = 5;
     public List<CueAction> Actions { get; set; } = new();
 }
 
@@ -50,6 +55,15 @@ public sealed class FeatureFlags
     public bool EndWarning { get; set; } = true;
     public bool TrackEq { get; set; } = true;
     public bool MasterEq { get; set; } = true;
+    public bool Preview { get; set; }
+    public bool Waveform { get; set; } = true;
+    public bool Chain { get; set; } = true;
+    public bool Undo { get; set; } = true;
+    public bool Normalize { get; set; }
+    public bool Limiter { get; set; } = true;
+    public bool Acts { get; set; } = true;
+    public bool PrintList { get; set; } = true;
+    public bool Backup { get; set; } = true;
 }
 
 /// <summary>Per-show settings, saved as cueplayer.json inside the music folder (travels with it on a USB stick).</summary>
@@ -103,9 +117,13 @@ public sealed class AppSettings
     public string? LastFolder { get; set; }
     public string? DeviceId { get; set; }
     public FeatureFlags Features { get; set; } = new();
+    /// <summary>Headphone (pre-listen) output; null = none chosen yet.</summary>
+    public string? PreviewDeviceId { get; set; }
 
-    public static string Dir => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CuePlayer");
+    /// <summary>%AppData%\CuePlayer (name kept from v1 so existing settings survive). Tests redirect it with RTCSTAGE_SETTINGS_DIR.</summary>
+    public static string Dir => Environment.GetEnvironmentVariable("RTCSTAGE_SETTINGS_DIR") is { Length: > 0 } d
+        ? d
+        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CuePlayer");
 
     private static string FilePath => Path.Combine(Dir, "settings.json");
 

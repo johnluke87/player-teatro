@@ -60,6 +60,10 @@ public sealed class CommandViewModel : ObservableObject
     public ICommand EditCommand { get; }
 
     public string Name => Model.Name;
+    /// <summary>Act / scene header this pad sits under.</summary>
+    public string Group => string.IsNullOrWhiteSpace(Model.Group) ? "Senza atto" : Model.Group.Trim();
+    public bool AutoNext => Model.AutoNext;
+    public string AutoNextText => Model.AutoNext ? $"poi il prossimo da solo dopo {Model.AutoNextSeconds:0.#} s" : "";
     public string Note => Model.Note ?? "";
     public bool HasNote => !string.IsNullOrWhiteSpace(Model.Note);
     public string Summary => CommandText.Summary(Model.Actions);
@@ -93,6 +97,9 @@ public sealed class CommandViewModel : ObservableObject
     {
         Model = model;
         OnPropertyChanged(nameof(Name));
+        OnPropertyChanged(nameof(Group));
+        OnPropertyChanged(nameof(AutoNext));
+        OnPropertyChanged(nameof(AutoNextText));
         OnPropertyChanged(nameof(Note));
         OnPropertyChanged(nameof(HasNote));
         OnPropertyChanged(nameof(Summary));
