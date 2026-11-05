@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Cue Player — Manuale d'uso</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm 15mm; }
+  :root { --ink:#1b1f24; --sub:#5b6470; --line:#d9dde3; --blue:#2f6fd6; --green:#1f9a5d; --orange:#d9661f; --amber:#c98a12; --red:#c8323a; --teal:#1f9a91; --soft:#f3f5f8; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); font-size: 10.5pt; line-height: 1.5; margin: 0; }
+  h1 { font-size: 26pt; margin: 0 0 4mm; letter-spacing: -0.5px; }
+  h2 { font-size: 15pt; margin: 9mm 0 3mm; padding-bottom: 1.5mm; border-bottom: 2px solid var(--ink); page-break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 5mm 0 2mm; page-break-after: avoid; }
+  p { margin: 0 0 2.5mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin: 0 0 1mm; }
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9.8pt; page-break-inside: avoid; }
+  th, td { border: 1px solid var(--line); padding: 1.6mm 2.2mm; text-align: left; vertical-align: top; }
+  th { background: var(--soft); font-weight: 600; }
+  code, .k { font-family: Consolas, monospace; font-size: 9.5pt; background: var(--soft); border: 1px solid var(--line); border-radius: 3px; padding: 0 1.2mm; }
+  .k { font-weight: 700; }
+  figure { margin: 3mm 0 5mm; page-break-inside: avoid; }
+  figure img { width: 100%; border: 1px solid var(--line); border-radius: 4px; }
+  figure.small img { width: auto; max-width: 60mm; }
+  figcaption { font-size: 9pt; color: var(--sub); margin-top: 1.5mm; }
+  .cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; page-break-after: always; }
+  .cover .tag { color: var(--sub); font-size: 13pt; margin-bottom: 10mm; }
+  .cover .box { border-left: 4px solid var(--blue); padding: 3mm 5mm; background: var(--soft); max-width: 140mm; }
+  .note { border-left: 4px solid var(--blue); background: #eef4ff; padding: 2.5mm 4mm; margin: 3mm 0 4mm; page-break-inside: avoid; }
+  .warn { border-left: 4px solid var(--orange); background: #fff3ea; padding: 2.5mm 4mm; margin: 3mm 0 4mm; page-break-inside: avoid; }
+  .chip { display: inline-block; border-radius: 10px; padding: 0 2.4mm; font-size: 9pt; font-weight: 600; color: #fff; }
+  .c-green{background:var(--green)} .c-amber{background:var(--amber)} .c-orange{background:var(--orange)} .c-blue{background:var(--blue)} .c-teal{background:var(--teal)} .c-red{background:var(--red)} .c-grey{background:#7a8594}
+  .step { display: grid; grid-template-columns: 8mm 1fr; gap: 2mm; margin-bottom: 2mm; }
+  .step b.n { display: inline-flex; width: 6.5mm; height: 6.5mm; border-radius: 50%; background: var(--ink); color: #fff; align-items: center; justify-content: center; font-size: 9pt; }
+  .toc ol { columns: 2; column-gap: 10mm; }
+  .pb { page-break-before: always; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+  .cmd { border: 1px solid var(--line); border-left: 6px solid var(--blue); border-radius: 4px; padding: 2mm 3mm; margin-bottom: 2.5mm; page-break-inside: avoid; }
+  .cmd .t { font-weight: 700; }
+  .cmd .a { font-family: Consolas, monospace; font-size: 9.3pt; color: #333; }
+  footer { position: fixed; bottom: -11mm; left: 0; right: 0; text-align: center; font-size: 8pt; color: var(--sub); }
+</style>
+</head>
+<body>
+
+<footer>Cue Player — Manuale d'uso</footer>
+
+<section class="cover">
+  <h1>Cue Player</h1>
+  <div class="tag">Lettore di musiche per spettacoli teatrali — Manuale d'uso</div>
+  <div class="box">
+    <p><b>Cosa fa:</b> fa partire, sfumare, abbassare e fermare le musiche di uno spettacolo con un clic o un tasto,
+    anche più musiche insieme, con pulsanti di comando che prepari tu.</p>
+    <p><b>Dove funziona:</b> Windows 10 e 11. Nessuna installazione, nessuna connessione a internet.</p>
+    <p style="margin:0"><b>Negli esempi</b> le musiche si chiamano <b>MusicaA</b>, <b>MusicaB</b>, <b>MusicaC</b>… e
+    <b>EffettoA</b>: al loro posto ci saranno i tuoi file.</p>
+  </div>
+</section>
+
+<section class="toc">
+  <h2>Indice</h2>
+  <ol>
+    <li>Avvio e requisiti</li>
+    <li>Preparare la cartella dello spettacolo</li>
+    <li>La schermata principale</li>
+    <li>Controlli di ogni traccia</li>
+    <li>I comandi: «premo il pulsante e succede…»</li>
+    <li>Creare e modificare un comando</li>
+    <li>Esempi pronti</li>
+    <li>Durante lo spettacolo: GO, tasti, colori</li>
+    <li>Sfumare e fermare tutto</li>
+    <li>Equalizzatore</li>
+    <li>Uscita audio</li>
+    <li>Salvataggio delle impostazioni</li>
+    <li>Prima dello spettacolo: lista di controllo</li>
+    <li>Problemi e soluzioni</li>
+  </ol>
+</section>
+
+<h2>1. Avvio e requisiti</h2>
+<ul>
+  <li>Il programma è un unico file: <code>CuePlayer.exe</code>. Doppio clic per aprirlo. Non serve installare nulla.</li>
+  <li>Puoi tenerlo su una chiavetta USB insieme alla cartella delle musiche e usarlo su qualsiasi PC Windows 10/11.</li>
+  <li>Al primo avvio Windows può mostrare «PC protetto da Windows»: scegli <i>Ulteriori informazioni → Esegui comunque</i>.</li>
+  <li>Il programma riapre da solo l'ultima cartella usata.</li>
+  <li>Finché è aperto, il PC non va in sospensione e lo schermo non si spegne.</li>
+</ul>
+
+<h2>2. Preparare la cartella dello spettacolo</h2>
+<ol>
+  <li>Crea una cartella (es. <code>Spettacolo</code>) e mettici dentro tutti i file audio dello spettacolo.</li>
+  <li>Formati accettati: <b>MP3, WAV, M4A/AAC, FLAC, WMA, AIFF</b>.</li>
+  <li>Le tracce compaiono <b>in ordine di nome</b>. Per decidere l'ordine rinominale con un numero davanti:
+      <code>01_MusicaA.mp3</code>, <code>02_MusicaB.mp3</code>, <code>03_EffettoA.wav</code>… (10 viene dopo 9, come in Esplora file).</li>
+  <li>Nel programma premi <b>Apri cartella</b> e scegli la cartella.</li>
+</ol>
+<div class="note">Se aggiungi, togli o sostituisci un file mentre il programma è aperto, l'elenco si aggiorna da solo dopo un secondo.
+C'è anche il pulsante <b>Aggiorna</b>. Un file che non si riesce a leggere compare in <span class="chip c-red">rosso</span> con la scritta «formato non leggibile».</div>
+<div class="note">Tutte le musiche vengono caricate in memoria all'apertura: quando premi un pulsante il suono parte subito, senza leggere dal disco.</div>
+
+<h2 class="pb">3. La schermata principale</h2>
+<figure>
+  <img src="img/01-principale.png">
+  <figcaption>La schermata principale con una cartella di esempio e quattro comandi già preparati.</figcaption>
+</figure>
+<table>
+  <tr><th style="width:28%">Zona</th><th>A cosa serve</th></tr>
+  <tr><td>In alto</td><td><b>Apri cartella</b>, <b>Aggiorna</b>, percorso della cartella, scelta dell'<b>Uscita audio</b>.</td></tr>
+  <tr><td>Al centro: le tracce</td><td>Una riga per ogni file, con i controlli manuali (play/pausa, stop, sfuma, volume, loop, EQ). Servono per le prove e per intervenire a mano.</td></tr>
+  <tr><td>A destra: COMANDI</td><td>I tuoi pulsanti. Ognuno fa fare qualcosa a una o più tracce insieme. È il modo consigliato di gestire lo spettacolo.</td></tr>
+  <tr><td>In basso</td><td><b>GO</b> (esegue il prossimo comando), <b>SFUMA TUTTO</b>, <b>STOP TUTTO</b>, <b>EQ generale</b>, <b>Volume generale</b> con indicatore di livello.</td></tr>
+  <tr><td>Barra di stato</td><td>Messaggi, conferma di salvataggio («✓ impostazioni salvate…»), uscita audio in uso.</td></tr>
+</table>
+
+<h2>4. Controlli di ogni traccia</h2>
+<table>
+  <tr><th style="width:24%">Controllo</th><th>Cosa fa</th></tr>
+  <tr><td><span class="chip c-green">▶</span> / <span class="chip c-amber">⏸</span></td><td>Un solo pulsante: <b>verde</b> = fai partire (o riprendi dalla pausa), <b>giallo</b> = metti in pausa. Cambia da solo in base allo stato.</td></tr>
+  <tr><td>⏹ Stop</td><td>Ferma la traccia e la riporta all'inizio.</td></tr>
+  <tr><td>⏮ Da capo</td><td>Fa ripartire la traccia dall'inizio.</td></tr>
+  <tr><td><span class="chip c-orange">SFUMA 3s</span> + durata</td><td>Abbassa la traccia fino al silenzio nel tempo scelto nel menu accanto (1–30 s), poi la ferma.</td></tr>
+  <tr><td>Volume (cursore)</td><td>Volume della traccia, da 0 a 100%. Si regola anche con la <b>rotella del mouse</b> (2% per scatto): utile per sfumare a mano.</td></tr>
+  <tr><td>🔁 Loop</td><td>Acceso (blu) = la traccia ricomincia da sola quando finisce (sottofondi, effetti continui).</td></tr>
+  <tr><td>EQ</td><td>Equalizzatore della traccia (bassi, medi, alti). Diventa giallo se non è piatto. Vedi capitolo 10.</td></tr>
+  <tr><td>Barra di avanzamento</td><td>Mostra tempo trascorso e tempo mancante. <b>Clic sulla barra</b> = salta a quel punto.</td></tr>
+</table>
+<div class="warn"><b>Importante:</b> il volume della riga è il volume «massimo» della traccia. Le percentuali dei comandi si applicano <i>sopra</i>
+questo valore: se la riga è al 10%, un comando «volume 100%» porta la traccia al 10%. Normalmente lascia le righe al 100%.</div>
+
+<h2 class="pb">5. I comandi: «premo il pulsante e succede…»</h2>
+<p>Un <b>comando</b> è un pulsante colorato nel pannello di destra. Quando lo premi, <b>ogni traccia fa quello che hai deciso tu, tutte nello stesso istante</b>.
+Per ogni traccia puoi scegliere una di queste azioni:</p>
+<table>
+  <tr><th style="width:22%">Azione</th><th>Cosa succede</th><th style="width:28%">Si regola</th></tr>
+  <tr><td>— non toccare</td><td>La traccia resta com'è.</td><td>—</td></tr>
+  <tr><td><b>▶ Parte</b></td><td>La traccia parte. Se era in pausa riprende da dove era. Se sta già suonando non riparte: va solo al volume indicato.</td><td>volume (10…100%), tempo (subito…10 s), «riparti da capo»</td></tr>
+  <tr><td><b>🔉 Volume</b></td><td>Solo per una traccia <b>che sta già suonando</b>: la abbassa o la riporta su, senza fermarla. Se la traccia è ferma non succede nulla.</td><td>volume, tempo</td></tr>
+  <tr><td><b>⏸ Pausa</b></td><td>La traccia si ferma dov'è. Un successivo «▶ Parte» la fa riprendere da lì.</td><td>—</td></tr>
+  <tr><td><b>⏹ Stop</b></td><td>La traccia si ferma e torna all'inizio. Con un tempo &gt; 0 sfuma prima di fermarsi.</td><td>tempo</td></tr>
+</table>
+<h3>Volume e tempo</h3>
+<ul>
+  <li><b>Volume 100%</b> = volume pieno della traccia; <b>20%</b> = sottofondo leggero; <b>10%</b> = appena udibile.</li>
+  <li><b>Tempo «subito»</b> = cambio istantaneo. <b>1…10 s</b> = il passaggio avviene gradualmente in quel tempo (sfumatura).</li>
+  <li>Quando una traccia sale e un'altra scende nello stesso comando, il programma usa una curva che mantiene il volume complessivo costante: non c'è il «buco» a metà passaggio.</li>
+</ul>
+
+<h2>6. Creare e modificare un comando</h2>
+<div class="step"><b class="n">1</b><div>Nel pannello COMANDI premi <b>+ Nuovo</b> (per modificare un comando esistente premi la matita ✎ accanto).</div></div>
+<div class="step"><b class="n">2</b><div>Scrivi il <b>nome del pulsante</b> (es. «Entra MusicaB») e scegli un <b>colore</b>.</div></div>
+<div class="step"><b class="n">3</b><div>Nell'elenco delle tracce clicca, per ognuna che deve fare qualcosa, <b>▶ Parte</b>, <b>🔉 Volume</b>, <b>⏸ Pausa</b> o <b>⏹ Stop</b>. Sotto compaiono le scelte di volume e tempo, già impostate su valori comodi (Parte: 100% subito · Volume: 20% in 2 s · Stop: subito).</div></div>
+<div class="step"><b class="n">4</b><div>Controlla il riquadro <b>COSA FARÀ</b> in basso: riassume in parole quello che succederà.</div></div>
+<div class="step"><b class="n">5</b><div><b>Prova</b> esegue subito il comando per sentirlo. <b>Salva</b> lo aggiunge al pannello. <b>Annulla</b> chiude senza salvare. <b>Elimina</b> lo cancella.</div></div>
+<figure>
+  <img src="img/04-editor.png">
+  <figcaption>Editor del comando «Entra MusicaB, MusicaA sotto»: MusicaB ▶ Parte al 100% subito, MusicaA 🔉 Volume 20% in 2 secondi.</figcaption>
+</figure>
+<h3>Scorciatoie dell'editor</h3>
+<ul>
+  <li><b>Stesso tempo per tutte</b>: imposta lo stesso tempo su tutte le tracce del comando in un clic.</li>
+  <li><b>Prendi la situazione attuale</b>: imposta il comando con le tracce che stanno suonando adesso, al loro volume attuale. Comodo per «fotografare» una situazione preparata a mano.</li>
+  <li>Le frecce ⌃ ⌄ accanto a ogni comando nel pannello ne cambiano l'ordine.</li>
+</ul>
+
+<h2 class="pb">7. Esempi pronti</h2>
+<p>Una sequenza tipica: una musica di fondo, una seconda musica che entra mentre la prima resta sotto, poi il ritorno, poi un cambio di scena.</p>
+<div class="cmd" style="border-left-color:#25A866"><div class="t">1 · Parte MusicaA</div>
+  <div class="a">MusicaA  ▶ Parte · 100% · subito</div></div>
+<div class="cmd" style="border-left-color:#3D8BFD"><div class="t">2 · Entra MusicaB, MusicaA sotto</div>
+  <div class="a">MusicaB  ▶ Parte · 100% · subito<br>MusicaA  🔉 Volume · 20% · 2 s</div></div>
+<div class="cmd" style="border-left-color:#E8712A"><div class="t">3 · Via MusicaB, torna MusicaA</div>
+  <div class="a">MusicaB  ⏹ Stop · subito<br>MusicaA  🔉 Volume · 100% · 2 s</div></div>
+<div class="cmd" style="border-left-color:#9B5DE5"><div class="t">4 · Dissolvenza MusicaA → MusicaC</div>
+  <div class="a">MusicaA  ⏹ Stop · 3 s<br>MusicaC  ▶ Parte · 100% · 3 s</div></div>
+<p>Altri casi frequenti:</p>
+<table>
+  <tr><th style="width:36%">Voglio…</th><th>Imposta nel comando</th></tr>
+  <tr><td>fermare MusicaA e far partire subito MusicaB</td><td>MusicaA ⏹ Stop subito · MusicaB ▶ Parte 100% subito</td></tr>
+  <tr><td>far entrare MusicaB piano piano</td><td>MusicaB ▶ Parte 100% in 5 s</td></tr>
+  <tr><td>un effetto sopra la musica, senza toccarla</td><td>EffettoA ▶ Parte 100% subito (le altre: non toccare)</td></tr>
+  <tr><td>abbassare tutto per un dialogo e poi tornare su</td><td>comando 1: MusicaA 🔉 Volume 30% in 2 s · comando 2: MusicaA 🔉 Volume 100% in 2 s</td></tr>
+  <tr><td>chiudere la scena sfumando</td><td>MusicaA ⏹ Stop in 5 s</td></tr>
+  <tr><td>ripetere una musica dall'inizio</td><td>MusicaA ▶ Parte con «riparti da capo»</td></tr>
+</table>
+
+<h2>8. Durante lo spettacolo: GO, tasti, colori</h2>
+<p><b>GO</b> (o la barra <span class="k">Spazio</span>) esegue il comando segnato <span class="chip c-blue">PROSSIMO</span> e passa al successivo.
+L'ultimo eseguito mostra <span class="chip c-green">✓ ESEGUITO</span>. In basso, accanto a GO, è sempre scritto quale comando partirà e cosa farà.
+Se non hai creato comandi, GO fa partire una dopo l'altra le tracce dell'elenco.</p>
+<table>
+  <tr><th style="width:26%">Tasto</th><th>Azione</th></tr>
+  <tr><td><span class="k">Spazio</span></td><td>GO: esegue il prossimo comando</td></tr>
+  <tr><td><span class="k">1</span> … <span class="k">9</span></td><td>esegue direttamente il comando con quel numero</td></tr>
+  <tr><td><span class="k">↑</span> <span class="k">↓</span></td><td>cambia il prossimo comando (senza comandi: la prossima traccia)</td></tr>
+  <tr><td><span class="k">F</span></td><td>sfuma tutto</td></tr>
+  <tr><td><span class="k">Esc</span></td><td>STOP TUTTO immediato</td></tr>
+  <tr><td>rotella del mouse</td><td>su un cursore di volume: ±2% per scatto; sull'EQ: ±0,5 dB</td></tr>
+</table>
+<div class="note">Un doppio colpo involontario di GO entro un terzo di secondo viene ignorato, così non si salta un comando per sbaglio.</div>
+<figure>
+  <img src="img/02-passaggio.png">
+  <figcaption>Dopo il comando 2: MusicaA <b>si abbassa</b> (giallo) mentre MusicaB è <b>in riproduzione</b> (verde). Il prossimo comando è il 3.</figcaption>
+</figure>
+<h3>Colori delle tracce</h3>
+<table>
+  <tr><th style="width:30%">Colore / scritta</th><th>Significato</th></tr>
+  <tr><td><span class="chip c-green">IN RIPRODUZIONE</span></td><td>suona a volume pieno</td></tr>
+  <tr><td><span class="chip c-blue">IN ENTRATA · %</span></td><td>sta salendo (sfumata in entrata)</td></tr>
+  <tr><td><span class="chip c-amber">SI ABBASSA · %</span></td><td>sta scendendo verso un volume di sottofondo</td></tr>
+  <tr><td><span class="chip c-teal">SOTTOFONDO · %</span></td><td>suona a volume ridotto e continua</td></tr>
+  <tr><td><span class="chip c-orange">IN SFUMATURA</span></td><td>sta sfumando e poi si fermerà</td></tr>
+  <tr><td><span class="chip c-amber">IN PAUSA</span></td><td>in pausa</td></tr>
+  <tr><td><span class="chip c-red">rosso</span></td><td>file non leggibile</td></tr>
+</table>
+<figure>
+  <img src="img/03-sottofondo.png">
+  <figcaption>Qualche secondo dopo: MusicaA resta in <b>sottofondo al 20%</b> (verde acqua) e continua a suonare sotto MusicaB.</figcaption>
+</figure>
+
+<h2 class="pb">9. Sfumare e fermare tutto</h2>
+<ul>
+  <li><b>SFUMA</b> su una traccia: la porta al silenzio nel tempo scelto accanto e la ferma.</li>
+  <li><b>SFUMA TUTTO</b> (tasto <span class="k">F</span>): sfuma insieme tutte le tracce che suonano, nel tempo scelto accanto al pulsante.</li>
+  <li><b>STOP TUTTO</b> (tasto <span class="k">Esc</span>): ferma subito tutto. È il pulsante di emergenza.</li>
+  <li><b>A mano</b>: trascina il volume della traccia o usa la rotella del mouse sopra il cursore.</li>
+  <li>Premere <b>▶</b> su una traccia che sta sfumando annulla la sfumatura e la riporta su.</li>
+</ul>
+
+<h2>10. Equalizzatore</h2>
+<div class="two">
+  <div>
+    <h3>EQ di una traccia</h3>
+    <p>Pulsante <b>EQ</b> sulla riga: tre cursori <b>Bassi</b>, <b>Medi</b>, <b>Alti</b>, da −12 a +12 dB.
+    Serve a correggere il suono di un singolo file (es. troppo cupo, troppo acuto).</p>
+    <h3>EQ generale</h3>
+    <p>Pulsante <b>EQ generale</b> in basso: cinque bande (80 Hz, 250 Hz, 1 kHz, 3,5 kHz, 10 kHz) applicate a tutto l'audio in uscita.
+    Serve ad adattare il suono alla sala e all'impianto.</p>
+  </div>
+  <figure class="small"><img src="img/06-eq-traccia.png"><figcaption>EQ della traccia MusicaC.</figcaption></figure>
+</div>
+<ul>
+  <li><b>Doppio clic</b> su un cursore = torna a 0 dB. <b>Rotella</b> = ±0,5 dB. <b>Azzera</b> = tutto piatto.</li>
+  <li>Il pulsante EQ diventa <b>giallo</b> quando l'equalizzatore non è piatto. A 0 dB l'EQ non modifica il suono.</li>
+  <li>Alzare molto i bassi aumenta il volume e può distorcere: spesso è meglio <b>abbassare</b> le altre bande.</li>
+</ul>
+
+<h2>11. Uscita audio</h2>
+<ul>
+  <li>In alto a destra scegli la scheda audio: <b>Predefinita di Windows</b> oppure una specifica (altoparlanti, scheda USB, mixer).</li>
+  <li>Se l'uscita scelta non si può aprire (es. cuffie Bluetooth spente ma ancora impostate in Windows), il programma <b>passa da solo a un'altra uscita funzionante</b>
+      e in basso a destra scrive <b>⚠ Uscita: … (ripiego)</b>. Quando l'uscita scelta torna disponibile ci ritorna.</li>
+  <li>Se una scheda USB viene scollegata durante l'uso, il programma prova a ripristinare l'audio da solo.</li>
+</ul>
+<div class="warn">Per lo spettacolo usa un'uscita <b>via cavo</b> (jack o scheda USB). Le cuffie e gli altoparlanti Bluetooth hanno ritardo e possono disconnettersi.</div>
+
+<h2 class="pb">12. Salvataggio delle impostazioni</h2>
+<p>Non c'è niente da salvare a mano. Ogni modifica viene scritta dopo meno di un secondo nel file <code>cueplayer.json</code>
+<b>dentro la cartella delle musiche</b>. In basso compare «✓ impostazioni salvate in cueplayer.json» con l'ora.</p>
+<p>Vengono salvati: volume, loop, durata della sfumata ed EQ di ogni traccia; EQ generale; volume generale; durata di «Sfuma tutto»; tutti i comandi.</p>
+<ul>
+  <li>Riaprendo il programma ritrovi tutto com'era.</li>
+  <li>Copiando la cartella (con <code>cueplayer.json</code>) su un altro PC o su una chiavetta, lo spettacolo viaggia con le sue impostazioni.</li>
+  <li>Le impostazioni sono legate al <b>nome del file</b>: se rinomini un file, quella traccia riparte dalle impostazioni normali e i comandi che la usavano la segnano come «file mancante». Rinomina i file prima di preparare i comandi.</li>
+  <li>Se la cartella è di sola lettura (es. un CD) compare un avviso: le modifiche non si possono salvare.</li>
+</ul>
+
+<h2>13. Prima dello spettacolo: lista di controllo</h2>
+<ol>
+  <li>Apri la cartella dello spettacolo e controlla che nessuna traccia sia rossa.</li>
+  <li>Controlla che il volume di ogni riga sia quello voluto (di solito 100%).</li>
+  <li>Scegli l'uscita audio giusta e verifica in basso a destra che non ci sia «(ripiego)».</li>
+  <li>Fai una <b>prova completa</b> di tutti i comandi in ordine, con GO, sull'impianto della serata.</li>
+  <li>Regola il <b>volume generale</b> e, se serve, l'<b>EQ generale</b> in sala.</li>
+  <li>Attiva in Windows «<b>Non disturbare</b>» (Notifiche) e disattiva i suoni di sistema.</li>
+  <li>Collega il PC alla corrente.</li>
+  <li>Prima di iniziare controlla che il <span class="chip c-blue">PROSSIMO</span> sia il primo comando (frecce ↑ ↓ per spostarlo).</li>
+</ol>
+
+<h2>14. Problemi e soluzioni</h2>
+<table>
+  <tr><th style="width:34%">Problema</th><th>Cosa controllare</th></tr>
+  <tr><td>Non sento una traccia</td><td>Volume della sua riga (non deve essere a 0–1%); volume generale; volume di Windows; uscita audio in alto a destra.</td></tr>
+  <tr><td>Non sento niente</td><td>Barra in basso a destra: se c'è «Nessuna uscita audio» o «(ripiego)», scegli un'altra uscita o collega la scheda audio. L'indicatore verde sotto il volume generale si muove se il programma sta mandando suono.</td></tr>
+  <tr><td>Un comando «🔉 Volume» non fa niente</td><td>Agisce solo su tracce che stanno già suonando. Per far partire una traccia usa «▶ Parte».</td></tr>
+  <tr><td>La musica finisce troppo presto</td><td>Il file è più corto di quanto serve: attiva 🔁 Loop sulla sua riga.</td></tr>
+  <tr><td>Traccia in rosso</td><td>File danneggiato o formato non supportato: convertilo in MP3 o WAV.</td></tr>
+  <tr><td>Un comando segna «file mancante»</td><td>Il file è stato rinominato o spostato: apri il comando (✎) e scegli l'azione sulla traccia con il nome nuovo.</td></tr>
+  <tr><td>Ho chiuso per sbaglio</td><td>Riapri: tutte le impostazioni e i comandi sono salvati. Se c'era musica in riproduzione, il programma chiede conferma prima di chiudersi.</td></tr>
+  <tr><td>Errori strani</td><td>Il programma registra gli errori in <code>%AppData%\CuePlayer\errori.log</code> e continua a suonare.</td></tr>
+</table>
+
+</body>
+</html>

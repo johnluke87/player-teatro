@@ -1,0 +1,22 @@
+# build output
+**/bin/
+**/obj/
+publish/
+*.user
+.vs/
+
+# the built exe (~70 MB) is distributed separately, not versioned
+CuePlayer.exe
+
+# music folders and their show settings: never commit audio (copyright, size)
+musiche-prova/
+*.mp3
+*.wav
+*.m4a
+*.aac
+*.flac
+*.wma
+*.aif
+*.aiff
+cueplayer.json
+cueplayer.json.bak

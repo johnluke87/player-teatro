@@ -1,0 +1,510 @@
+<Window x:Class="CuePlayer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:CuePlayer.ViewModels"
+        xmlns:local="clr-namespace:CuePlayer"
+        Title="Cue Player" Width="1600" Height="900" MinWidth="1340" MinHeight="600" WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}"
+        FontFamily="Segoe UI" FontSize="14"
+        PreviewKeyDown="Window_PreviewKeyDown" Closing="Window_Closing">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
+        <local:InverseBoolConverter x:Key="Not"/>
+
+        <!-- one EQ band: vertical fader, double-click = 0 dB -->
+        <DataTemplate DataType="{x:Type vm:EqBandViewModel}">
+            <StackPanel Margin="8,0" Width="58">
+                <TextBlock Text="{Binding GainText}" HorizontalAlignment="Center" FontSize="12" FontWeight="SemiBold"/>
+                <Slider Orientation="Vertical" Height="150" Margin="0,6" HorizontalAlignment="Center"
+                        Minimum="{Binding Min}" Maximum="{Binding Max}" Value="{Binding Gain}"
+                        SmallChange="0.5" LargeChange="2" TickFrequency="6" TickPlacement="BottomRight"
+                        PreviewMouseWheel="Slider_PreviewMouseWheel" MouseDoubleClick="EqSlider_DoubleClick"
+                        ToolTip="Doppio clic = 0 dB · rotella = mezzo dB"/>
+                <TextBlock Text="{Binding Label}" HorizontalAlignment="Center" FontSize="12" Foreground="{StaticResource SubBrush}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <Style x:Key="PlayPauseBtn" TargetType="Button" BasedOn="{StaticResource IconBtn}">
+            <Setter Property="Content" Value="&#xE768;"/>
+            <Setter Property="Background" Value="{StaticResource GreenBrush}"/>
+            <Setter Property="ToolTip" Value="Play / riprendi"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                    <Setter Property="Content" Value="&#xE769;"/>
+                    <Setter Property="Background" Value="{StaticResource AmberBrush}"/>
+                    <Setter Property="ToolTip" Value="Pausa"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="EqPopupBorder" TargetType="Border">
+            <Setter Property="Background" Value="#23272E"/>
+            <Setter Property="BorderBrush" Value="#3A414B"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="14,12"/>
+        </Style>
+
+        <DataTemplate DataType="{x:Type vm:CueViewModel}">
+            <Border x:Name="Row" Margin="0,0,0,6" CornerRadius="9" Background="{StaticResource RowBrush}"
+                    BorderThickness="2" BorderBrush="Transparent" Cursor="Hand"
+                    MouseLeftButtonDown="Row_MouseLeftButtonDown"
+                    ToolTip="Clic sulla riga: diventa la prossima traccia del GO">
+                <Grid Margin="0,8,10,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="7"/>
+                        <ColumnDefinition Width="56"/>
+                        <ColumnDefinition Width="*" MinWidth="220"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border x:Name="Accent" Grid.Column="0" CornerRadius="3" Margin="0,-2,0,-2" Background="Transparent"/>
+
+                    <TextBlock Grid.Column="1" Text="{Binding Number}" FontSize="22" FontWeight="Bold"
+                               Foreground="{StaticResource SubBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                    <!-- title + progress -->
+                    <Grid Grid.Column="2" Margin="0,0,14,0" VerticalAlignment="Center">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <DockPanel>
+                            <Border x:Name="NextBadge" DockPanel.Dock="Left" Background="{StaticResource BlueBrush}" CornerRadius="4"
+                                    Padding="6,1" Margin="0,0,8,0" VerticalAlignment="Center"
+                                    Visibility="{Binding IsNext, Converter={StaticResource BoolVis}}">
+                                <TextBlock Text="PROSSIMA" FontSize="11" FontWeight="Bold" Foreground="White"/>
+                            </Border>
+                            <TextBlock x:Name="StateLabel" DockPanel.Dock="Right" Text="{Binding StateText}" FontSize="12"
+                                       FontWeight="Bold" Margin="10,0,0,0" VerticalAlignment="Center"
+                                       Foreground="{StaticResource SubBrush}"/>
+                            <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding FileName}" VerticalAlignment="Center"/>
+                        </DockPanel>
+                        <Grid Grid.Row="1" Margin="0,7,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ProgressBar x:Name="Bar" Height="12" Minimum="0" Maximum="1" Value="{Binding Progress, Mode=OneWay}"
+                                         Background="#2E343D" BorderThickness="0" Foreground="{StaticResource GreenBrush}"
+                                         MouseLeftButtonDown="Progress_MouseLeftButtonDown" Cursor="Hand"
+                                         ToolTip="Clic per saltare a quel punto"/>
+                            <TextBlock Grid.Column="1" Text="{Binding TimeText}" FontFamily="Consolas" FontSize="15"
+                                       Margin="12,0,0,0" MinWidth="128" TextAlignment="Right" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Grid>
+
+                    <!-- transport -->
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" IsEnabled="{Binding IsReady}">
+                        <Button Style="{StaticResource PlayPauseBtn}" Command="{Binding PlayPauseCommand}" Width="54"/>
+                        <Button Style="{StaticResource IconBtn}" Content="&#xE71A;" Command="{Binding StopCommand}" ToolTip="Stop (torna all'inizio)"/>
+                        <Button Style="{StaticResource IconBtn}" Content="&#xE892;" Command="{Binding RestartCommand}" ToolTip="Riparti da capo"/>
+                    </StackPanel>
+
+                    <!-- fade -->
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0" IsEnabled="{Binding IsReady}">
+                        <Button Style="{StaticResource Btn}" Content="{Binding FadeLabel}" Command="{Binding FadeCommand}"
+                                Background="{StaticResource OrangeBrush}" Height="42" MinWidth="104" ToolTip="Sfuma fino al silenzio e ferma"/>
+                        <ComboBox ItemsSource="{Binding DataContext.FadeChoices, RelativeSource={RelativeSource AncestorType=Window}}"
+                                  SelectedItem="{Binding FadeSeconds}" ItemStringFormat="{}{0} s" Width="62" Height="30"
+                                  Margin="4,0,0,0" VerticalContentAlignment="Center" ToolTip="Durata della sfumata"/>
+                    </StackPanel>
+
+                    <!-- volume -->
+                    <DockPanel Grid.Column="5" Margin="16,0,6,0" VerticalAlignment="Center"
+                               ToolTip="Volume traccia (anche con la rotella del mouse)">
+                        <TextBlock DockPanel.Dock="Left" Text="&#xE767;" FontFamily="{StaticResource IconFont}" FontSize="16"
+                                   Foreground="{StaticResource SubBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding Volume, StringFormat={}{0:0}%}" Width="42"
+                                   TextAlignment="Right" VerticalAlignment="Center"/>
+                        <Slider Value="{Binding Volume}" PreviewMouseWheel="Slider_PreviewMouseWheel"/>
+                    </DockPanel>
+
+                    <ToggleButton Grid.Column="6" Style="{StaticResource LoopToggle}" Content="&#xE8EE;"
+                                  IsChecked="{Binding Loop}" IsEnabled="{Binding IsReady}" ToolTip="Ripeti in loop"/>
+
+                    <!-- track EQ -->
+                    <Grid Grid.Column="7" Margin="6,0,0,0" VerticalAlignment="Center">
+                        <ToggleButton x:Name="EqBtn" Height="42" MinWidth="50" Content="EQ"
+                                      IsHitTestVisible="{Binding IsOpen, ElementName=EqPop, Converter={StaticResource Not}}"
+                                      ToolTip="Equalizzatore di questa traccia (bassi, medi, alti)">
+                            <ToggleButton.Style>
+                                <Style TargetType="ToggleButton" BasedOn="{StaticResource TextToggle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding EqActive}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource AmberBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ToggleButton.Style>
+                        </ToggleButton>
+                        <Popup x:Name="EqPop" IsOpen="{Binding IsChecked, ElementName=EqBtn}" StaysOpen="False"
+                               PlacementTarget="{Binding ElementName=EqBtn}" Placement="Left" AllowsTransparency="True">
+                            <Border Style="{StaticResource EqPopupBorder}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Azzera" Padding="10,3"
+                                                FontSize="12" Command="{Binding ResetEqCommand}"/>
+                                        <TextBlock Text="{Binding Title, StringFormat=EQ · {0}}" FontWeight="Bold" VerticalAlignment="Center"
+                                                   MaxWidth="200" TextTrimming="CharacterEllipsis" Margin="0,0,12,0"/>
+                                    </DockPanel>
+                                    <ItemsControl ItemsSource="{Binding EqBands}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"/></ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </Grid>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsNext}" Value="True">
+                    <Setter TargetName="Row" Property="BorderBrush" Value="{StaticResource BlueBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StateKey}" Value="playing">
+                    <Setter TargetName="Accent" Property="Background" Value="{StaticResource GreenBrush}"/>
+                    <Setter TargetName="Row" Property="Background" Value="#1C3328"/>
+                    <Setter TargetName="StateLabel" Property="Foreground" Value="{StaticResource GreenBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StateKey}" Value="paused">
+                    <Setter TargetName="Accent" Property="Background" Value="{StaticResource AmberBrush}"/>
+                    <Setter TargetName="Row" Property="Background" Value="#33291A"/>
+                    <Setter TargetName="StateLabel" Property="Foreground" Value="{StaticResource AmberBrush}"/>
+                    <Setter TargetName="Bar" Property="Foreground" Value="{StaticResource AmberBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StateKey}" Value="fading">
+                    <Setter TargetName="Accent" Property="Background" Value="{StaticResource OrangeBrush}"/>
+                    <Setter TargetName="Row" Property="Background" Value="#35241A"/>
+                    <Setter TargetName="StateLabel" Property="Foreground" Value="{StaticResource OrangeBrush}"/>
+                    <Setter TargetName="Bar" Property="Foreground" Value="{StaticResource OrangeBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StateKey}" Value="fadingin">
+                    <Setter TargetName="Accent" Property="Background" Value="{StaticResource BlueBrush}"/>
+                    <Setter TargetName="Row" Property="Background" Value="#1A2840"/>
+                    <Setter TargetName="StateLabel" Property="Foreground" Value="{StaticResource BlueBrush}"/>
+                    <Setter TargetName="Bar" Property="Foreground" Value="{StaticResource BlueBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StateKey}" Value="ducking">
+                    <Setter TargetName="Accent" Property="Background" Value="{StaticResource AmberBrush}"/>
+                    <Setter TargetName="Row" Property="Background" Value="#2E2A1C"/>
+                    <Setter TargetName="StateLabel" Property="Foreground" Value="{StaticResource AmberBrush}"/>
+                    <Setter TargetName="Bar" Property="Foreground" Value="{StaticResource AmberBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StateKey}" Value="ducked">
+                    <Setter TargetName="Accent" Property="Background" Value="{StaticResource TealBrush}"/>
+                    <Setter TargetName="Row" Property="Background" Value="#17302E"/>
+                    <Setter TargetName="StateLabel" Property="Foreground" Value="{StaticResource TealBrush}"/>
+                    <Setter TargetName="Bar" Property="Foreground" Value="{StaticResource TealBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StateKey}" Value="error">
+                    <Setter TargetName="Accent" Property="Background" Value="{StaticResource RedBrush}"/>
+                    <Setter TargetName="StateLabel" Property="Foreground" Value="{StaticResource RedBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding StateKey}" Value="loading">
+                    <Setter TargetName="Row" Property="Opacity" Value="0.6"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- top bar -->
+        <Border Background="{StaticResource PanelBrush}" Padding="16,10">
+            <DockPanel>
+                <Button DockPanel.Dock="Left" Style="{StaticResource Btn}" Click="OpenFolder_Click"
+                        ToolTip="Scegli la cartella con le musiche dello spettacolo">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE838;" FontFamily="{StaticResource IconFont}" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Apri cartella"/>
+                    </StackPanel>
+                </Button>
+                <Button DockPanel.Dock="Left" Style="{StaticResource Btn}" Command="{Binding RescanCommand}" Margin="8,0,0,0"
+                        IsEnabled="{Binding HasFolder}" ToolTip="Rilegge la cartella (lo fa anche da solo quando aggiungi file)">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFont}" FontSize="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Aggiorna"/>
+                    </StackPanel>
+                </Button>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Uscita audio" Foreground="{StaticResource SubBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}" Width="300" Height="30"
+                              VerticalContentAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="{Binding Folder}" Foreground="{StaticResource SubBrush}" VerticalAlignment="Center"
+                           Margin="16,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Folder}"/>
+            </DockPanel>
+        </Border>
+
+        <!-- commands panel (right) -->
+        <Border Grid.Row="1" HorizontalAlignment="Right" Width="350" Background="{StaticResource PanelBrush}"
+                BorderBrush="#2B3038" BorderThickness="1,0,0,0">
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="16,14,16,8">
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Command="{Binding NewCommandCommand}"
+                            Background="{StaticResource BlueBrush}" Padding="12,6" IsEnabled="{Binding HasCues}"
+                            ToolTip="Crea un pulsante che fa fare alle tracce quello che vuoi">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock Text="Nuovo"/>
+                        </StackPanel>
+                    </Button>
+                    <StackPanel>
+                        <TextBlock Text="COMANDI" FontSize="15" FontWeight="Bold"/>
+                        <TextBlock Text="clic o tasto 1-9 · GO li esegue in ordine" FontSize="11" Foreground="{StaticResource SubBrush}"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False" Padding="12,0,12,12">
+                        <ItemsControl ItemsSource="{Binding Commands}" Focusable="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:CommandViewModel}">
+                                    <Grid Margin="0,0,0,8">
+                                        <Button x:Name="Pad" Command="{Binding RunCommand}" Focusable="False" Cursor="Hand"
+                                                AutomationProperties.Name="{Binding Name}" ToolTip="Clic per eseguire">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="b" Background="{StaticResource RowBrush}" CornerRadius="10"
+                                                            BorderThickness="2" BorderBrush="Transparent">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="8"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Border Background="{Binding ColorBrush}" CornerRadius="8,0,0,8"/>
+                                                            <ContentPresenter Grid.Column="1"/>
+                                                        </Grid>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="b" Property="Background" Value="#272C34"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsPressed" Value="True">
+                                                            <Setter TargetName="b" Property="Opacity" Value="0.75"/>
+                                                        </Trigger>
+                                                        <DataTrigger Binding="{Binding IsNext}" Value="True">
+                                                            <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource BlueBrush}"/>
+                                                        </DataTrigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                            <Grid Margin="12,10,44,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Width="34" Height="34" CornerRadius="17" Background="{Binding ColorBrush}"
+                                                        VerticalAlignment="Top" Margin="0,0,12,0">
+                                                    <TextBlock Text="{Binding Number}" FontSize="16" FontWeight="Bold" Foreground="White"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <StackPanel Grid.Column="1">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="{StaticResource BlueBrush}" CornerRadius="4" Padding="5,0" Margin="0,0,6,0"
+                                                                VerticalAlignment="Center" Visibility="{Binding IsNext, Converter={StaticResource BoolVis}}">
+                                                            <TextBlock Text="PROSSIMO" FontSize="10" FontWeight="Bold" Foreground="White"/>
+                                                        </Border>
+                                                        <Border Background="#2E3A2F" CornerRadius="4" Padding="5,0" Margin="0,0,6,0"
+                                                                VerticalAlignment="Center" Visibility="{Binding IsLast, Converter={StaticResource BoolVis}}">
+                                                            <TextBlock Text="✓ ESEGUITO" FontSize="10" FontWeight="Bold" Foreground="#7FD6A4"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" TextWrapping="Wrap"
+                                                               Foreground="{StaticResource TextBrush}"/>
+                                                    <TextBlock Text="{Binding Summary}" FontSize="12" Foreground="{StaticResource SubBrush}"
+                                                               TextWrapping="Wrap" Margin="0,3,0,0" LineHeight="18"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Button>
+                                        <!-- edit / reorder, outside the pad so they don't run it -->
+                                        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,6,0">
+                                            <Button Style="{StaticResource IconBtn}" Content="&#xE70F;" Command="{Binding EditCommand}"
+                                                    Width="32" Height="30" FontSize="13" Margin="0" ToolTip="Modifica"
+                                                    AutomationProperties.Name="Modifica"/>
+                                            <Button Style="{StaticResource IconBtn}" Content="&#xE70E;" Click="CommandUp_Click"
+                                                    Width="32" Height="22" FontSize="10" Margin="0,4,0,0" Background="Transparent" ToolTip="Sposta su"/>
+                                            <Button Style="{StaticResource IconBtn}" Content="&#xE70D;" Click="CommandDown_Click"
+                                                    Width="32" Height="22" FontSize="10" Margin="0" Background="Transparent" ToolTip="Sposta giù"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- empty state -->
+                    <StackPanel VerticalAlignment="Top" Margin="22,30,22,0">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasCommands}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Text="&#xE8AB;" FontFamily="{StaticResource IconFont}" FontSize="34" Foreground="{StaticResource BlueBrush}"/>
+                        <TextBlock Text="Nessun comando" FontSize="17" FontWeight="SemiBold" Margin="0,10,0,6"/>
+                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource SubBrush}" LineHeight="20">
+                            Un comando è un pulsante che fa fare più cose insieme alle tracce. Ad esempio:
+                            <LineBreak/><Run Foreground="{StaticResource TextBrush}">«Entra B»</Run> → B ▶ parte, A 🔉 volume 20%
+                            <LineBreak/><Run Foreground="{StaticResource TextBrush}">«Torna A»</Run> → B ⏹ stop, A 🔉 volume 100%
+                            <LineBreak/><LineBreak/>Premi <Run FontWeight="Bold" Foreground="{StaticResource TextBrush}">+ Nuovo</Run> per crearne uno.
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </DockPanel>
+        </Border>
+
+        <!-- cue list -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Focusable="False" Padding="14,12,14,6" Margin="0,0,350,0">
+            <ItemsControl ItemsSource="{Binding Cues}" Focusable="False"/>
+        </ScrollViewer>
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,350,0">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasCues}" Value="False">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+            <TextBlock Text="&#xE8D6;" FontFamily="{StaticResource IconFont}" FontSize="56" HorizontalAlignment="Center"
+                       Foreground="{StaticResource SubBrush}"/>
+            <TextBlock Text="Nessuna musica" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+            <TextBlock Text="Premi «Apri cartella» e scegli la cartella con i file MP3, WAV, M4A, FLAC…" Foreground="{StaticResource SubBrush}"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="Ordine = nome del file: rinominali 01_…, 02_…, 03_… per fare la scaletta." Foreground="{StaticResource SubBrush}"
+                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- master bar -->
+        <Border Grid.Row="2" Background="{StaticResource PanelBrush}" Padding="16,12" BorderBrush="#2B3038" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Style="{StaticResource Btn}" Command="{Binding GoCommand}" Background="{StaticResource GreenBrush}"
+                        Height="64" MinWidth="150" Padding="18,0" ToolTip="Esegue il PROSSIMO comando (o, senza comandi, la prossima traccia) — tasto Spazio">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="GO" FontSize="24" FontWeight="Bold"/>
+                            <TextBlock Text="Spazio" FontSize="11" FontWeight="Normal" Opacity="0.85"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Button>
+
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="16,0">
+                    <TextBlock Text="{Binding NextLabel}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SubBrush}"/>
+                    <TextBlock Text="{Binding NextTitle}" FontSize="20" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding NextSummary}" FontSize="12" Foreground="#BFD6FF" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Style="{StaticResource Btn}" Command="{Binding FadeAllCommand}" Background="{StaticResource OrangeBrush}"
+                            Height="64" MinWidth="150" ToolTip="Sfuma tutte le tracce in riproduzione (tasto F)">
+                        <StackPanel>
+                            <TextBlock Text="{Binding FadeAllLabel}" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="F" FontSize="11" FontWeight="Normal" Opacity="0.8" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <ComboBox ItemsSource="{Binding FadeChoices}" SelectedItem="{Binding MasterFadeSeconds}" ItemStringFormat="{}{0} s"
+                              Width="62" Height="30" Margin="4,0,0,0" VerticalContentAlignment="Center" ToolTip="Durata di «Sfuma tutto»"/>
+                    <Button Style="{StaticResource Btn}" Command="{Binding StopAllCommand}" Background="{StaticResource RedBrush}"
+                            Height="64" MinWidth="150" Margin="12,0,0,0" ToolTip="Ferma subito tutto (tasto Esc)">
+                        <StackPanel>
+                            <TextBlock Text="STOP TUTTO" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Esc" FontSize="11" FontWeight="Normal" Opacity="0.8" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- master EQ -->
+                <Grid Grid.Column="4" Margin="14,0,0,0" VerticalAlignment="Center">
+                    <ToggleButton x:Name="MasterEqBtn" Height="64" Width="70"
+                                  IsHitTestVisible="{Binding IsOpen, ElementName=MasterEqPop, Converter={StaticResource Not}}"
+                                  ToolTip="Equalizzatore generale (su tutto l'audio in uscita)">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton" BasedOn="{StaticResource TextToggle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding MasterEqActive}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource AmberBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
+                        <StackPanel>
+                            <TextBlock Text="EQ" FontSize="18" HorizontalAlignment="Center"/>
+                            <TextBlock Text="generale" FontSize="11" FontWeight="Normal" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <Popup x:Name="MasterEqPop" IsOpen="{Binding IsChecked, ElementName=MasterEqBtn}" StaysOpen="False"
+                           PlacementTarget="{Binding ElementName=MasterEqBtn}" Placement="Top" AllowsTransparency="True">
+                        <Border Style="{StaticResource EqPopupBorder}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,8">
+                                    <Button DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Azzera" Padding="10,3"
+                                            FontSize="12" Command="{Binding ResetMasterEqCommand}"/>
+                                    <TextBlock Text="EQ GENERALE" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                </DockPanel>
+                                <ItemsControl ItemsSource="{Binding MasterEqBands}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                </Grid>
+
+                <StackPanel Grid.Column="5" VerticalAlignment="Center" Margin="18,0,0,0" Width="240"
+                            ToolTip="Volume generale (anche con la rotella del mouse)">
+                    <DockPanel>
+                        <TextBlock Text="VOLUME GENERALE" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SubBrush}"/>
+                        <TextBlock Text="{Binding MasterVolume, StringFormat={}{0:0}%}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                    </DockPanel>
+                    <Slider Value="{Binding MasterVolume}" Margin="0,4,0,4" PreviewMouseWheel="Slider_PreviewMouseWheel"/>
+                    <ProgressBar Height="5" Maximum="1" Value="{Binding MeterL, Mode=OneWay}" Background="#2E343D" BorderThickness="0"
+                                 Foreground="{StaticResource GreenBrush}" Margin="0,0,0,2"/>
+                    <ProgressBar Height="5" Maximum="1" Value="{Binding MeterR, Mode=OneWay}" Background="#2E343D" BorderThickness="0"
+                                 Foreground="{StaticResource GreenBrush}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- status -->
+        <Border Grid.Row="3" Background="#0C0E11" Padding="16,5">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Right" Text="{Binding OutputText}" Foreground="{StaticResource SubBrush}" FontSize="12"/>
+                <TextBlock DockPanel.Dock="Right" Text="{Binding SaveText}" Foreground="{StaticResource TealBrush}" FontSize="12" Margin="0,0,24,0"/>
+                <TextBlock Text="{Binding Status}" Foreground="{StaticResource SubBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

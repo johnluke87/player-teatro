@@ -1,0 +1,254 @@
+using System.Windows.Input;
+using CuePlayer.Audio;
+
+namespace CuePlayer.ViewModels;
+
+public sealed class CueViewModel : ObservableObject
+{
+    private readonly MainViewModel _owner;
+
+    public CueViewModel(MainViewModel owner, string path, CueSettings? saved)
+    {
+        _owner = owner;
+        FilePath = path;
+        FileName = Path.GetFileName(path);
+        Title = Path.GetFileNameWithoutExtension(path);
+        Stamp = FileStamp(path);
+        if (saved != null)
+        {
+            _volume = Math.Clamp(saved.Volume, 0, 100);
+            _loop = saved.Loop;
+            _fadeSeconds = saved.FadeSeconds > 0 ? saved.FadeSeconds : 3;
+        }
+
+        EqBands = EqBandViewModel.Create(Equalizer.TrackBands, saved?.Eq, (band, db) =>
+        {
+            _voice?.SetEq(band, db);
+            OnPropertyChanged(nameof(EqActive));
+            _owner.ScheduleSave();
+        });
+        ResetEqCommand = new RelayCommand(() => { foreach (var b in EqBands) b.Gain = 0; });
+
+        // one button: pauses while playing, plays otherwise
+        PlayPauseCommand = new RelayCommand(() =>
+        {
+            if (Voice == null) return;
+            if (Voice.GetStatus().State == PlayState.Playing) Voice.Pause();
+            else { Voice.Play(); _owner.Touch(this); }
+            Refresh();
+        });
+        StopCommand = new RelayCommand(() => { Voice?.Stop(); Refresh(); });
+        RestartCommand = new RelayCommand(() => { Voice?.PlayFromStart(); _owner.Touch(this); Refresh(); });
+        FadeCommand = new RelayCommand(() => { Voice?.FadeOut(FadeSeconds); Refresh(); });
+    }
+
+    public string FilePath { get; }
+    public string FileName { get; }
+    public string Title { get; }
+    public string Stamp { get; set; }
+
+    public ICommand PlayPauseCommand { get; }
+    public ICommand ResetEqCommand { get; }
+    public ICommand StopCommand { get; }
+    public ICommand RestartCommand { get; }
+    public ICommand FadeCommand { get; }
+
+    public List<EqBandViewModel> EqBands { get; }
+    public bool EqActive => EqBands.Any(b => b.Gain != 0);
+
+    /// <summary>True while sound is coming out (drives the play/pause button).</summary>
+    public bool IsPlaying => _state == PlayState.Playing;
+
+    public static string FileStamp(string path)
+    {
+        try
+        {
+            var fi = new FileInfo(path);
+            return $"{fi.Length}:{fi.LastWriteTimeUtc.Ticks}";
+        }
+        catch { return ""; }
+    }
+
+    private int _number;
+    public int Number { get => _number; set => Set(ref _number, value); }
+
+    private Voice? _voice;
+    public Voice? Voice
+    {
+        get => _voice;
+        private set
+        {
+            if (Set(ref _voice, value)) OnPropertyChanged(nameof(IsReady));
+        }
+    }
+
+    public bool IsReady => _voice != null;
+
+    public void Attach(Voice voice)
+    {
+        voice.SetVolume((float)(_volume / 100.0));
+        voice.Loop = _loop;
+        foreach (var b in EqBands) voice.SetEq(b.Index, b.Gain);
+        Voice = voice;
+        Error = null;
+        DurationText = Format(voice.Duration);
+        Refresh();
+    }
+
+    public Voice? Detach()
+    {
+        var v = _voice;
+        Voice = null;
+        State = PlayState.Stopped;
+        StateKey = "loading";
+        return v;
+    }
+
+    private string? _error;
+    public string? Error
+    {
+        get => _error;
+        set
+        {
+            if (Set(ref _error, value)) UpdateStateKey();
+        }
+    }
+
+    private double _volume = 100;
+    public double Volume
+    {
+        get => _volume;
+        set
+        {
+            value = Math.Clamp(Math.Round(value), 0, 100);
+            if (!Set(ref _volume, value)) return;
+            _voice?.SetVolume((float)(value / 100.0));
+            _owner.ScheduleSave();
+        }
+    }
+
+    private bool _loop;
+    public bool Loop
+    {
+        get => _loop;
+        set
+        {
+            if (!Set(ref _loop, value)) return;
+            if (_voice != null) _voice.Loop = value;
+            _owner.ScheduleSave();
+        }
+    }
+
+    private double _fadeSeconds = 3;
+    public double FadeSeconds
+    {
+        get => _fadeSeconds;
+        set
+        {
+            if (!Set(ref _fadeSeconds, value)) return;
+            OnPropertyChanged(nameof(FadeLabel));
+            _owner.ScheduleSave();
+        }
+    }
+
+    public string FadeLabel => $"SFUMA {FadeSeconds:0.#}s";
+
+    // ---------------- state ----------------
+
+    private bool _isNext;
+    public bool IsNext { get => _isNext; set => Set(ref _isNext, value); }
+
+    private PlayState _state;
+    public PlayState State
+    {
+        get => _state;
+        private set
+        {
+            if (Set(ref _state, value)) OnPropertyChanged(nameof(IsPlaying));
+        }
+    }
+
+    public bool IsActive => _state != PlayState.Stopped;
+
+    private VoiceStatus _status;
+
+    /// <summary>loading | error | stopped | playing | paused | fading | ducking | ducked | fadingin — drives the row colour.</summary>
+    private string _stateKey = "loading";
+    public string StateKey { get => _stateKey; private set => Set(ref _stateKey, value); }
+
+    private string _stateText = "caricamento…";
+    public string StateText { get => _stateText; private set => Set(ref _stateText, value); }
+
+    private double _progress;
+    public double Progress { get => _progress; private set => Set(ref _progress, value); }
+
+    private string _timeText = "";
+    public string TimeText { get => _timeText; private set => Set(ref _timeText, value); }
+
+    private string _durationText = "";
+    public string DurationText { get => _durationText; private set => Set(ref _durationText, value); }
+
+    public void SeekTo(double fraction)
+    {
+        if (_voice == null) return;
+        _voice.Seek(TimeSpan.FromSeconds(_voice.Duration.TotalSeconds * Math.Clamp(fraction, 0, 1)));
+        Refresh();
+    }
+
+    /// <summary>Polled by the UI timer.</summary>
+    public void Refresh()
+    {
+        if (_voice == null)
+        {
+            UpdateStateKey();
+            return;
+        }
+        var s = _voice.GetStatus();
+        _status = s;
+        if (s.Failed && _error == null) Error = "errore di lettura del file";
+        State = s.State;
+        OnPropertyChanged(nameof(IsActive));
+
+        var dur = _voice.Duration;
+        var pos = s.Position;
+        Progress = dur.TotalSeconds > 0 ? pos.TotalSeconds / dur.TotalSeconds : 0;
+        TimeText = s.State == PlayState.Stopped
+            ? DurationText
+            : $"{Format(pos)}  /  -{Format(dur - pos)}";
+        UpdateStateKey();
+    }
+
+    private void UpdateStateKey()
+    {
+        if (_error != null) { StateKey = "error"; StateText = _error; return; }
+        if (_voice == null) { StateKey = "loading"; StateText = "caricamento…"; return; }
+        var s = _status;
+        int pct = (int)Math.Round(s.Level * 100);
+        (StateKey, StateText) = _state switch
+        {
+            PlayState.Playing when s.FadingOut => ("fading", "IN SFUMATURA"),
+            PlayState.Playing when s.Ducking => ("ducking", $"SI ABBASSA · {pct}%"),
+            PlayState.Playing when s.FadingIn => ("fadingin", $"IN ENTRATA · {pct}%"),
+            PlayState.Playing when s.Level < 0.97f => ("ducked", $"SOTTOFONDO · {pct}%"),
+            PlayState.Playing => ("playing", "IN RIPRODUZIONE"),
+            PlayState.Paused => ("paused", "IN PAUSA"),
+            _ => ("stopped", ""),
+        };
+    }
+
+    public CueSettings ToSettings() => new()
+    {
+        Volume = _volume,
+        Loop = _loop,
+        FadeSeconds = _fadeSeconds,
+        Eq = EqActive ? EqBands.Select(b => b.Gain).ToArray() : null,
+    };
+
+    private static string Format(TimeSpan t)
+    {
+        if (t < TimeSpan.Zero) t = TimeSpan.Zero;
+        return t.TotalHours >= 1
+            ? $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}"
+            : $"{(int)t.TotalMinutes}:{t.Seconds:00}";
+    }
+}
